@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Share2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -8,23 +8,36 @@ import RecommendationPage from "../Components/RecommendationPage";
 import PageBack from "../Components/CommonDetails/PageBack";
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCart();
+  const cartLeftRef = useRef(null);
+  const cartRightRef = useRef(null);
 
   useEffect(() => {
-    gsap.from(".cart-left", {
-      x: -80,
-      opacity: 1,
-      duration: 1,
-      ease: "power3.out",
+    if (cart.length === 0) return;
+
+    const left = cartLeftRef.current;
+    const right = cartRightRef.current;
+
+    if (!left || !right) return;
+
+    const ctx = gsap.context(() => {
+      gsap.from(left, {
+        x: -80,
+        opacity: 0,
+        duration: 1,
+        ease: "power3.out",
+      });
+
+      gsap.from(right, {
+        x: 80,
+        opacity: 0,
+        duration: 1,
+        delay: 0.2,
+        ease: "power3.out",
+      });
     });
 
-    gsap.from(".cart-right", {
-      x: 80,
-      opacity: 1,
-      duration: 1,
-      delay: 0.2,
-      ease: "power3.out",
-    });
-  }, []);
+    return () => ctx.revert();
+  }, [cart.length]);
 
   const subtotal = getTotalPrice();
   const tax = subtotal * 0.05;
@@ -90,7 +103,7 @@ export default function CartPage() {
           {/* LEFT */}
 
 
-          <div className="lg:col-span-2 cart-left">
+          <div ref={cartLeftRef} className="lg:col-span-2">
 
             {/* <h1 className="text-5xl font-serif font-bold">
               Your Cart
@@ -202,7 +215,7 @@ export default function CartPage() {
           {/* RIGHT */}
 
 
-          <div className="cart-right">
+          <div ref={cartRightRef}>
 
             <motion.div
               whileHover={{ y: -4 }}

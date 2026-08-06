@@ -37,6 +37,7 @@ export const CardDetails = () => {
             />
 
             <input
+              autoComplete="cc-number"
               placeholder="1234 5678 9012 3456"
               className="w-full border rounded-2xl py-4 pl-12 pr-24 outline-none focus:ring-2 focus:ring-[#0d2746]"
             />
@@ -77,6 +78,7 @@ export const CardDetails = () => {
             />
 
             <input
+              autoComplete="cc-name"
               placeholder="John Doe"
               className="w-full border rounded-2xl py-4 pl-12 outline-none focus:ring-2 focus:ring-[#0d2746]"
             />
@@ -103,6 +105,7 @@ export const CardDetails = () => {
               />
 
               <input
+                autoComplete="cc-exp"
                 placeholder="MM / YY"
                 className="w-full border rounded-2xl py-4 pl-12 outline-none focus:ring-2 focus:ring-[#0d2746]"
               />
@@ -126,6 +129,7 @@ export const CardDetails = () => {
 
               <input
                 type="password"
+                autoComplete="cc-csc"
                 placeholder="***"
                 className="w-full border rounded-2xl py-4 pl-12 outline-none focus:ring-2 focus:ring-[#0d2746]"
               />

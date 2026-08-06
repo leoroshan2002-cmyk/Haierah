@@ -103,6 +103,7 @@ export default function Register() {
             {/* FORM FIELDS */}
             <input
               type="text"
+              autoComplete="name"
               placeholder="Full Name"
               className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-5 outline-none focus:ring-2 focus:ring-black"
               value={name}
@@ -112,6 +113,7 @@ export default function Register() {
 
             <input
               type="email"
+              autoComplete="email"
               placeholder="Email"
               className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-5 outline-none focus:ring-2 focus:ring-black"
               value={email}
@@ -121,6 +123,7 @@ export default function Register() {
 
             <input
               type="password"
+              autoComplete="new-password"
               placeholder="Password"
               className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-5 outline-none focus:ring-2 focus:ring-black"
               value={password}
@@ -130,6 +133,7 @@ export default function Register() {
 
             <input
               type="password"
+              autoComplete="new-password"
               placeholder="Confirm Password"
               className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-6 outline-none focus:ring-2 focus:ring-black"
               value={confirmPassword}

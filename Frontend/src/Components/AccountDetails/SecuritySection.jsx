@@ -114,6 +114,7 @@ export default function SecuritySection() {
                 <form onSubmit={handlePasswordChange} className="mt-6 space-y-4">
                   <input
                     type="password"
+                    autoComplete="current-password"
                     placeholder="Current password"
                     value={passwordForm.currentPassword}
                     onChange={(event) =>
@@ -123,6 +124,7 @@ export default function SecuritySection() {
                   />
                   <input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="New password"
                     value={passwordForm.newPassword}
                     onChange={(event) =>
@@ -132,6 +134,7 @@ export default function SecuritySection() {
                   />
                   <input
                     type="password"
+                    autoComplete="new-password"
                     placeholder="Confirm new password"
                     value={passwordForm.confirmPassword}
                     onChange={(event) =>

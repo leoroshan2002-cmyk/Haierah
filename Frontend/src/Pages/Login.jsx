@@ -130,6 +130,7 @@ export default function Login() {
           {/* EMAIL */}
           <input
             type="email"
+            autoComplete="email"
             placeholder="Email"
             className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-5 outline-none focus:ring-2 focus:ring-black"
             value={email}
@@ -140,6 +141,7 @@ export default function Login() {
           {/* PASSWORD */}
           <input
             type="password"
+            autoComplete="current-password"
             placeholder="Password"
             className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-3 outline-none focus:ring-2 focus:ring-black"
             value={password}
