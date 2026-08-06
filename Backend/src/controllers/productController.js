@@ -146,6 +146,20 @@ const toProductResponse = (product) => {
   };
 };
 
+const getUploadedFileUrl = (file) => {
+  if (!file) return '';
+
+  if (file.path || file.secure_url || file.url || file.location) {
+    return file.path || file.secure_url || file.url || file.location;
+  }
+
+  if (file.buffer && file.mimetype) {
+    return `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+  }
+
+  return '';
+};
+
 const parseProductPayload = (body, files = []) => {
   const payload = { ...body };
 
@@ -202,7 +216,10 @@ const parseProductPayload = (body, files = []) => {
     }
   }
 
-  const uploadedImages = files.map((file) => `/uploads/products/${file.filename}`);
+  const uploadedImages = files
+    .map(getUploadedFileUrl)
+    .filter((url) => typeof url === 'string' && url.trim());
+
   const normalizedImages = Array.isArray(parsedImages)
     ? parsedImages.filter((img) => typeof img === 'string' && img.trim() && !img.startsWith('blob:'))
     : [];

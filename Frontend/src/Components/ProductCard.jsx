@@ -4,6 +4,7 @@ import { Heart, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWishlist } from "../Context/WhislistContext";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
+import { normalizeImageList } from "../utils/productImages";
 
 const ProductCard = ({
     product,
@@ -21,6 +22,9 @@ const ProductCard = ({
     const { requireAuthAction } = useRequireAuthAction();
     const [selectedColor, setSelectedColor] = useState(colors[0] || "");
     const [selectedSize, setSelectedSize] = useState(sizes[0] || "");
+    const sanitizedImages = normalizeImageList(product.images || [product.image]);
+    const primaryImage = sanitizedImages[0] || product.image || "";
+    const secondaryImage = sanitizedImages[1] || "";
 
     return (
         <motion.div
@@ -34,17 +38,17 @@ const ProductCard = ({
 
     {/* First Image */}
     <img
-        src={product.images?.[0] || product.image}
+        src={primaryImage}
         alt={product.name}
         className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-            product.images?.[1] ? "group-hover:opacity-0" : ""
+            secondaryImage ? "group-hover:opacity-0" : ""
         }`}
     />
 
     {/* Hover Image */}
-    {product.images?.[1] && (
+    {secondaryImage && (
         <img
-            src={product.images[1]}
+            src={secondaryImage}
             alt={product.name}
             className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         />

@@ -52,7 +52,7 @@ export const updateCustomer = async (req, res) => {
     }
 
     if (req.file) {
-      payload.avatar = `/uploads/users/${req.file.filename}`;
+      payload.avatar = req.file.path || req.file.secure_url || req.file.url || req.file.location || '';
     }
 
     const updatedUser = await User.findByIdAndUpdate(id, payload, { new: true, runValidators: true });

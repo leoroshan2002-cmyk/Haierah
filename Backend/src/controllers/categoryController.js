@@ -58,7 +58,7 @@ export const createCategory = async (req, res) => {
   try {
     const payload = normalizeCategoryPayload({ ...req.body });
     if (req.file) {
-      payload.image = `/uploads/categories/${req.file.filename}`;
+      payload.image = req.file.path || req.file.secure_url || req.file.url || req.file.location || '';
     }
     const category = await Category.create(payload);
     res.status(201).json({ success: true, category: toCategoryResponse(category) });
@@ -72,7 +72,7 @@ export const updateCategory = async (req, res) => {
     const { id } = req.params;
     const payload = normalizeCategoryPayload({ ...req.body });
     if (req.file) {
-      payload.image = `/uploads/categories/${req.file.filename}`;
+      payload.image = req.file.path || req.file.secure_url || req.file.url || req.file.location || '';
     }
     const updatedCategory = await Category.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
 

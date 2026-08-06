@@ -1,4 +1,5 @@
 import express from 'express';
+import multer from 'multer';
 import 'dotenv/config';
 import cors from 'cors';
 import connectDB from './src/config/db.js';
@@ -27,6 +28,15 @@ app.use((err, _req, res, next) => {
   if (err && err.type === 'entity.parse.failed') {
     return res.status(400).json({ message: 'Invalid JSON payload' });
   }
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ message: err.message });
+  }
+
+  if (err && err.message === 'Only image files are allowed') {
+    return res.status(400).json({ message: err.message });
+  }
+
   return next(err);
 });
 

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, Plus, Trash2, Edit, UploadCloud, X, RefreshCw, FileSpreadsheet, Check, Eye } from 'lucide-react';
+import { normalizeImageList } from '../../utils/productImages';
 
 export const ProductsView = ({
   products,
@@ -57,17 +58,6 @@ export const ProductsView = ({
     return normalizedCategories.find((cat) => (typeof cat === 'string' ? cat === categoryName : cat.name === categoryName));
   };
 
-  const normalizeImageList = (images = []) => {
-    if (Array.isArray(images)) {
-      return images.filter((img) => typeof img === 'string' && img.trim());
-    }
-
-    if (typeof images === 'string' && images.trim()) {
-      return [images.trim()];
-    }
-
-    return [];
-  };
 
   const normalizeVariantColors = (variants = {}) => {
     const colors = Array.isArray(variants?.colors) ? variants.colors : [];

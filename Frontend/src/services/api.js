@@ -1,5 +1,6 @@
 import axios from 'axios';
 import campaignData from '../Components/Data/campaignData';
+import { sanitizeProductForClient } from '../utils/productImages';
 
 const rawBaseApiUrl = (import.meta.env.VITE_API_URL || '').trim();
 const normalizedBaseApiUrl = rawBaseApiUrl.replace(/\/$/, '');
@@ -55,7 +56,8 @@ export const fetchCategories = async () => {
 export const fetchProducts = async () => {
   try {
     const { data } = await apiClient.get(productsUrl);
-    return Array.isArray(data?.products) ? data.products : [];
+    const products = Array.isArray(data?.products) ? data.products : [];
+    return products.map((product) => sanitizeProductForClient(product));
   } catch (error) {
     console.error('Failed to fetch products:', error);
     return [];
@@ -65,7 +67,7 @@ export const fetchProducts = async () => {
 export const fetchProductById = async (id) => {
   try {
     const { data } = await apiClient.get(buildApiUrl(`/api/products/${id}`));
-    return data?.product || null;
+    return sanitizeProductForClient(data?.product || null);
   } catch (error) {
     console.error('Failed to fetch product:', error);
     return null;

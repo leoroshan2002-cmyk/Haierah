@@ -6,6 +6,7 @@ import { useCart } from "../Context/CartContext";
 import { useWishlist } from "../Context/WhislistContext";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import { fetchProductById } from "../services/api";
+import { subscribeToCatalogChanges } from "../utils/catalogSync";
 
 export default function ProductPage() {
   const navigate = useNavigate();
@@ -86,7 +87,10 @@ export default function ProductPage() {
       window.addEventListener('haierah-order-created', handleInventoryChange);
     }
 
+    const unsubscribeCatalog = subscribeToCatalogChanges(handleInventoryChange);
+
     return () => {
+      unsubscribeCatalog();
       if (typeof window !== 'undefined') {
         window.removeEventListener('haierah-products-updated', handleInventoryChange);
         window.removeEventListener('haierah-order-created', handleInventoryChange);

@@ -8,6 +8,7 @@ import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
 import PageBack from "../Components/CommonDetails/PageBack";
 import { fetchProducts } from "../services/api";
 import { filterProductsBySearch } from "../utils/searchUtils";
+import { subscribeToCatalogChanges } from "../utils/catalogSync";
 import HaierahStandard from "../Components/HaierahStandard";
 import Footer from "../Components/Footer";
 
@@ -37,7 +38,10 @@ export default function ProductsPage() {
             window.addEventListener('haierah-order-created', handleInventoryChange);
         }
 
+        const unsubscribeCatalog = subscribeToCatalogChanges(handleInventoryChange);
+
         return () => {
+            unsubscribeCatalog();
             if (typeof window !== 'undefined') {
                 window.removeEventListener('haierah-products-updated', handleInventoryChange);
                 window.removeEventListener('haierah-order-created', handleInventoryChange);

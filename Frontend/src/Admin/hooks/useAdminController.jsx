@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiClient } from '../../services/api';
 import { loadInitialState, saveState } from '../utils/store.js';
+import { notifyCatalogChanged } from '../../utils/catalogSync.js';
+import { normalizeImageList } from '../../utils/productImages.js';
 import CampaignManagement from "../../Pages/CampaignManagement";
 import { DashboardView } from '../components/DashboardView.jsx';
 import { ProductsView } from '../components/ProductsView.jsx';
@@ -233,9 +235,7 @@ export function useAdminController() {
     const formData = new FormData();
     const safeProduct = { ...prod };
     const imageFiles = Array.isArray(safeProduct.imageFiles) ? safeProduct.imageFiles : [];
-    const safeImages = Array.isArray(safeProduct.images)
-      ? safeProduct.images.filter((url) => typeof url === 'string' && !url.startsWith('blob:') && url.trim())
-      : [];
+    const safeImages = normalizeImageList(safeProduct.images);
     const normalizedVariants = safeProduct.variants && typeof safeProduct.variants === 'object'
       ? {
           sizes: Array.isArray(safeProduct.variants.sizes) ? safeProduct.variants.sizes.filter(Boolean) : [],
@@ -264,7 +264,7 @@ export function useAdminController() {
       formData.append('imageUrls', JSON.stringify(safeImages));
     }
 
-    imageFiles.forEach((file) => formData.append('images', file));
+    imageFiles.forEach((file) => formData.append('productImage', file));
     return formData;
   };
 
@@ -286,7 +286,7 @@ export function useAdminController() {
         products: [savedProduct, ...prev.products.filter((p) => resolveProductIdentifier(p) !== savedProductId)]
       }));
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('haierah-products-updated'));
+        notifyCatalogChanged('product-created');
       }
       addNotification(`New product added: ${savedProduct.name}`);
       triggerToast(`Listing introduced: ${savedProduct.name}`);
@@ -314,7 +314,7 @@ export function useAdminController() {
         products: prev.products.map((p) => (resolveProductIdentifier(p) === updatedProductId ? updatedProduct : p))
       }));
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('haierah-products-updated'));
+        notifyCatalogChanged('product-updated');
       }
       addNotification(`Product updated: ${updatedProduct.name || prod.name}`);
     } catch (error) {
@@ -336,7 +336,7 @@ export function useAdminController() {
         products: prev.products.filter((p) => resolveProductIdentifier(p) !== id)
       }));
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('haierah-products-updated'));
+        notifyCatalogChanged('product-deleted');
       }
       addNotification('Product removed from the catalog.');
       triggerToast('Product removed from the catalog.');
