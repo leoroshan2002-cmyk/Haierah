@@ -2,11 +2,19 @@ import axios from 'axios';
 import campaignData from '../Components/Data/campaignData';
 import { sanitizeProductForClient } from '../utils/productImages';
 
-const rawBaseApiUrl = (import.meta.env.VITE_API_URL || '').trim();
+const defaultProdApiUrl = import.meta.env.MODE === 'production'
+  ? 'https://haierah.onrender.com'
+  : '';
+const rawBaseApiUrl = (import.meta.env.VITE_API_URL || defaultProdApiUrl || '').trim();
 const normalizedBaseApiUrl = rawBaseApiUrl.replace(/\/$/, '');
 
 const apiBaseUrl = (() => {
-  if (!normalizedBaseApiUrl) return '';
+  if (!normalizedBaseApiUrl) {
+    console.warn(
+      'No VITE_API_URL configured. API calls will use relative paths under the current origin.'
+    );
+    return '';
+  }
   if (/^https?:\/\//i.test(normalizedBaseApiUrl)) return normalizedBaseApiUrl;
   if (normalizedBaseApiUrl.startsWith('/')) return normalizedBaseApiUrl;
   if (/^[a-zA-Z0-9.-]+(:\d+)?$/.test(normalizedBaseApiUrl)) {

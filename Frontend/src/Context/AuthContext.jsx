@@ -23,23 +23,7 @@ export const AuthProvider = ({ children }) => {
       }
     };
 
-    const handleBeforeUnload = () => {
-      localStorage.removeItem("user");
-      localStorage.removeItem("adminToken");
-      sessionStorage.removeItem("adminToken");
-    };
-
     loadStoredProfile();
-
-    if (typeof window !== "undefined") {
-      window.addEventListener("beforeunload", handleBeforeUnload);
-    }
-
-    return () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-      }
-    };
   }, []);
   const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "admin@haierah.com").trim().toLowerCase();
   const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";

@@ -88,6 +88,10 @@ const App = () => {
             />
 
             {/* USER ROUTES */}
+            <Route element={<Layout />}>
+              <Route path="/checkout" element={<CheckoutPage />} />
+            </Route>
+
             <Route
               element={
                 <ErrorBoundary>
@@ -98,7 +102,6 @@ const App = () => {
               }
             >
               <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/order-success" element={<OrderSuccessPage />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/account" element={<Account />} />
