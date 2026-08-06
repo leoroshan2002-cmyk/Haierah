@@ -262,7 +262,13 @@ export const CategoriesView = ({
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setImageFile(file);
+                    if (file) {
+                      setImage(URL.createObjectURL(file));
+                    }
+                  }}
                   className="w-full border p-2 bg-slate-50 rounded-lg dark:bg-slate-950 dark:text-white"
                 />
                 {imageFile ? (
