@@ -1,22 +1,11 @@
 import multer from 'multer';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import cloudinary from '../config/cloudinary.js';
+import { v4 as uuidv4 } from 'uuid';
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'haierah/categories',
-    format: async (_req, file) => file.mimetype?.split('/')[1] || 'jpg',
-    public_id: (req, file) => {
-      const originalName = file.originalname.replace(/\.[^.]+$/, '');
-      const safeName = originalName.replace(/[^a-zA-Z0-9_-]/g, '_');
-      return `${Date.now()}_${safeName}`;
-    },
-  },
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
-  storage,
+  storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, callback) => {
     if (file.mimetype && file.mimetype.startsWith('image/')) {
@@ -27,4 +16,29 @@ const upload = multer({
   },
 });
 
+const uploadToCloudinary = async (file) => {
+  return new Promise((resolve, reject) => {
+    const uploadOptions = {
+      folder: 'categories',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+      public_id: uuidv4(),
+    };
+
+    cloudinary.uploader.upload_stream(
+      uploadOptions,
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve({
+            secure_url: result.secure_url,
+            public_id: result.public_id,
+          });
+        }
+      }
+    ).end(file.buffer);
+  });
+};
+
+export { uploadToCloudinary };
 export default upload;

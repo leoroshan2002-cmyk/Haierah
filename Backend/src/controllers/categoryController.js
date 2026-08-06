@@ -1,4 +1,6 @@
 import Category from '../models/Category.js';
+import { uploadToCloudinary } from '../middleware/cloudinaryStorage.js';
+import cloudinary from '../config/cloudinary.js';
 
 const toCategoryResponse = (category) => {
   const doc = category.toObject();
@@ -58,7 +60,14 @@ export const createCategory = async (req, res) => {
   try {
     const payload = normalizeCategoryPayload({ ...req.body });
     if (req.file) {
-      payload.image = req.file.path || req.file.secure_url || req.file.url || req.file.location || '';
+      try {
+        const cloudinaryResult = await uploadToCloudinary(req.file);
+        payload.image = cloudinaryResult.secure_url;
+        payload.cloudinaryPublicId = cloudinaryResult.public_id;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        return res.status(500).json({ message: 'Image upload failed', error: uploadError.message });
+      }
     }
     const category = await Category.create(payload);
     res.status(201).json({ success: true, category: toCategoryResponse(category) });
@@ -71,9 +80,24 @@ export const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
     const payload = normalizeCategoryPayload({ ...req.body });
+    
     if (req.file) {
-      payload.image = req.file.path || req.file.secure_url || req.file.url || req.file.location || '';
+      try {
+        const cloudinaryResult = await uploadToCloudinary(req.file);
+        payload.image = cloudinaryResult.secure_url;
+        payload.cloudinaryPublicId = cloudinaryResult.public_id;
+        
+        // Delete old image from Cloudinary if it exists
+        const existingCategory = await Category.findById(id);
+        if (existingCategory && existingCategory.cloudinaryPublicId) {
+          await cloudinary.uploader.destroy(existingCategory.cloudinaryPublicId);
+        }
+      } catch (uploadError) {
+        console.error('Cloudinary upload error:', uploadError);
+        return res.status(500).json({ message: 'Image upload failed', error: uploadError.message });
+      }
     }
+    
     const updatedCategory = await Category.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
 
     if (!updatedCategory) {

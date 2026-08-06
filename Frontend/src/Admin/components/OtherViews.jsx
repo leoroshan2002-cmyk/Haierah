@@ -20,6 +20,8 @@ export const CategoriesView = ({
   const [subCategories, setSubCategories] = useState([]);
   const [newSubCategory, setNewSubCategory] = useState('');
   const [expandedCategoryIds, setExpandedCategoryIds] = useState([]);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
 
   const generateSlug = (val) => {
     setName(val);
@@ -67,6 +69,24 @@ export const CategoriesView = ({
 
   const removeSubCategory = (value) => {
     setSubCategories((prev) => prev.filter((item) => item !== value));
+  };
+
+  const handleDeleteClick = (cat) => {
+    setCategoryToDelete(cat);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (categoryToDelete) {
+      onDeleteCategory(categoryToDelete.id);
+      setCategoryToDelete(null);
+      setDeleteConfirmOpen(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setCategoryToDelete(null);
+    setDeleteConfirmOpen(false);
   };
 
   const handleSave = (e) => {
@@ -157,11 +177,7 @@ export const CategoriesView = ({
                     Edit Layout
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm(`Confirm deletion of category department "${cat.name}"?`)) {
-                        onDeleteCategory(cat.id);
-                      }
-                    }}
+                    onClick={() => handleDeleteClick(cat)}
                     className="p-1 px-2 border border-rose-100 hover:bg-rose-50 text-rose-600 rounded-lg text-xs"
                     title="Delete Category"
                   >
@@ -262,13 +278,7 @@ export const CategoriesView = ({
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    setImageFile(file);
-                    if (file) {
-                      setImage(URL.createObjectURL(file));
-                    }
-                  }}
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                   className="w-full border p-2 bg-slate-50 rounded-lg dark:bg-slate-950 dark:text-white"
                 />
                 {imageFile ? (
@@ -295,6 +305,35 @@ export const CategoriesView = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 w-full max-w-sm p-6 shadow-2xl relative">
+            <h3 className="font-bold text-slate-900 dark:text-white mb-2">
+              Confirm Deletion
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-6">
+              Are you sure you want to delete the category department "{categoryToDelete?.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={handleCancelDelete}
+                className="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

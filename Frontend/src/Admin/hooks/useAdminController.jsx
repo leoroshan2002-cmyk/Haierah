@@ -367,9 +367,6 @@ export function useAdminController() {
     }
 
     Object.entries(safeCategory).forEach(([key, value]) => {
-      if (key === 'image' && imageFile) {
-        return;
-      }
       if (value === undefined || value === null) {
         formData.append(key, '');
       } else if (typeof value === 'object') {

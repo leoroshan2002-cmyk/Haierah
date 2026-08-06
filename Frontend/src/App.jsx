@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 
 import Layout from "./Layout/Layout";
 import LoadingScreen from "./Components/LoadingScreen";
@@ -33,18 +38,13 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
-
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
     <>
       <ToastContainer position="top-right" autoClose={1500} />
 
-      {!isLoaded && (
-        <LoadingScreen
-          onComplete={() => setIsLoaded(true)}
-        />
-      )}
+      {!isLoaded && <LoadingScreen onComplete={() => setIsLoaded(true)} />}
 
       <div
         style={{
@@ -52,20 +52,20 @@ const App = () => {
         }}
         className="bg-[#f8f7f5] min-h-screen"
       >
-
         <Router>
-
           <ScrollTop />
 
           <Routes>
-
             {/* PUBLIC ROUTES */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
             {/* OPEN THE APP AT category */}
             <Route path="/" element={<Navigate to="/category/men" replace />} />
-            <Route path="/category" element={<Navigate to="/category/men" replace />} />
+            <Route
+              path="/category"
+              element={<Navigate to="/category/men" replace />}
+            />
 
             <Route element={<Layout />}>
               {/* <Route path="" element={<HomePage />} /> */}
@@ -105,15 +105,10 @@ const App = () => {
               <Route path="/orders" element={<OrderHistory />} />
             </Route>
 
-
             {/* NOT FOUND */}
             <Route path="*" element={<NotFound />} />
-
-
           </Routes>
-
         </Router>
-
       </div>
     </>
   );
