@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "Frontend/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
@@ -10,6 +10,7 @@
     }
   ],
   "routes": [
+    { "handle": "filesystem" },
     {
       "src": "/api/(.*)",
       "dest": "https://haierah.onrender.com/api/$1"
@@ -19,7 +20,7 @@
       "dest": "https://haierah.onrender.com/uploads/$1"
     },
     {
-      "src": "/(.*)",
+      "src": "/.*",
       "dest": "/index.html"
     }
   ]
