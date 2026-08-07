@@ -1,10 +1,25 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "react-toastify";
 
 const CartContext = createContext();
 
+const getInitialCart = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const persisted = window.localStorage.getItem("haierah-cart");
+    return persisted ? JSON.parse(persisted) : [];
+  } catch {
+    return [];
+  }
+};
+
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(getInitialCart);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("haierah-cart", JSON.stringify(cart));
+  }, [cart]);
 
   const getCartItemKey = (product) => {
     const productId = product?.id || product?._id || product?.productId || "product";

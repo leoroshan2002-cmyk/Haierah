@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import heroVideo from "../assets/herovideo.mp4";
 import { useNavigate } from "react-router-dom";
@@ -8,26 +8,6 @@ export default function HeroSection() {
   const videoRef = useRef(null);
   const { scrollY } = useScroll();
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const playPromise = video.play();
-    if (playPromise?.catch) {
-      playPromise.catch((error) => {
-        if (error.name !== "AbortError") {
-          console.warn("HeroSection video playback failed:", error);
-        }
-      });
-    }
-
-    return () => {
-      if (video && !video.paused) {
-        video.pause();
-      }
-    };
-  }, []);
-
   const textY = useTransform(scrollY, [0, 500], [0, -150]);
   return (
     <section className="relative h-screen overflow-hidden">
@@ -35,6 +15,7 @@ export default function HeroSection() {
   {/* Background Video */}
   <video
     ref={videoRef}
+    autoPlay
     muted
     loop
     playsInline
