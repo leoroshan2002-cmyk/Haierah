@@ -18,7 +18,7 @@ const apiBaseUrl = (() => {
   if (/^https?:\/\//i.test(normalizedBaseApiUrl)) return normalizedBaseApiUrl;
   if (normalizedBaseApiUrl.startsWith('/')) return normalizedBaseApiUrl;
   if (/^[a-zA-Z0-9.-]+(:\d+)?$/.test(normalizedBaseApiUrl)) {
-    return `http://${normalizedBaseApiUrl}`;
+    return `https://${normalizedBaseApiUrl}`;
   }
 
   console.warn(
