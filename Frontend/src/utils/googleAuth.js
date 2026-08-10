@@ -45,6 +45,12 @@ export const loadGoogleScript = () => {
 
 const hasValidGoogleClientId = (clientId) => typeof clientId === 'string' && clientId.trim().length > 0 && clientId.includes('.apps.googleusercontent.com');
 
+const logGoogleAuthDebug = (clientId) => {
+  if (typeof window !== 'undefined') {
+    console.info('[GoogleAuth] origin:', window.location.origin, 'clientId:', clientId);
+  }
+};
+
 const handleGoogleCredentialResponse = (response) => {
   if (!response?.credential) {
     googleErrorHandler?.('Google login failed. Please try again.');
@@ -143,6 +149,7 @@ export const renderGoogleButton = ({ clientId, container, onSuccess, onError }) 
         return;
       }
 
+      logGoogleAuthDebug(clientId);
       container.innerHTML = '';
 
       initializeGoogle({ clientId, onSuccess, onError, autoSelect: false });
