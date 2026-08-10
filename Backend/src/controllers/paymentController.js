@@ -5,6 +5,7 @@ import Razorpay from 'razorpay';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
+import emailService from '../services/email/emailService.js';
 
 dotenv.config();
 
@@ -330,6 +331,12 @@ export const verifyPayment = async (req, res) => {
       transactionId: razorpayPaymentId,
       status: paymentOrderPayload?.status || 'Processing',
     });
+
+    try {
+      await emailService.sendOrderStatusEmail(order, `Payment confirmed — Order ${order.orderId}`);
+    } catch (err) {
+      console.error('Failed to send order confirmation email', err);
+    }
 
     res.status(201).json({ success: true, message: 'Payment verified and order created.', order });
   } catch (error) {

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import User from '../models/User.js';
+import emailService from '../services/email/emailService.js';
 
 const normalizeOrderItem = (item) => {
   const productId = String(
@@ -325,6 +326,14 @@ export const createOrder = async (req, res) => {
 
     const order = await Order.create(orderData);
 
+    try {
+      console.log('Sending order confirmation email...');
+      await emailService.sendOrderStatusEmail(order, `Order confirmation — Order ${order.orderId}`);
+      console.log('Order confirmation email sent successfully.');
+    } catch (err) {
+      console.error('Failed to send order confirmation email:', err);
+    }
+
     for (const item of normalizedItems) {
       const productId = item.productId;
       const quantity = Number(item.quantity || item.qty || 1);
@@ -435,6 +444,15 @@ const applyStatusUpdate = async (req, res, { allowCancel = false } = {}) => {
         if (!product) continue;
 
         await Product.findByIdAndUpdate(productId, { stock: Math.max(0, Number(product.stock || 0) - quantity) });
+      }
+    }
+
+    const notifyStatuses = ['Confirmed', 'Processing', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
+    if (previousStatus !== nextStatus && notifyStatuses.includes(nextStatus)) {
+      try {
+        await emailService.sendOrderStatusEmail(updatedOrder);
+      } catch (err) {
+        console.error('Failed to send order status email', err);
       }
     }
 
