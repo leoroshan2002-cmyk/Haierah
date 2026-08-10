@@ -1,0 +1,1 @@
+import{R as e,t,z as n}from"./index-BcyEFzRy.js";import{n as r}from"./authActionUtils-CrtQPa_f.js";var i=()=>{let{user:i}=t(),a=e(),o=n();return{requireAuthAction:(e,t)=>i?!0:(r({actionType:e,payload:t,from:`${a.pathname}${a.search}`}),o(`/login`,{state:{from:a},replace:!0}),!1)}};export{i as t};

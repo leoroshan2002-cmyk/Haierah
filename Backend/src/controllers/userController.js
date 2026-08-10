@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
+import { uploadToCloudinary } from '../middleware/cloudinaryStorage.js';
 
 const toUserResponse = (user) => {
   const doc = user.toObject();
@@ -52,7 +53,8 @@ export const updateCustomer = async (req, res) => {
     }
 
     if (req.file) {
-      payload.avatar = req.file.path || req.file.secure_url || req.file.url || req.file.location || '';
+      const cloudinaryResult = await uploadToCloudinary(req.file, 'avatars');
+      payload.avatar = cloudinaryResult.secure_url;
     }
 
     const updatedUser = await User.findByIdAndUpdate(id, payload, { new: true, runValidators: true });

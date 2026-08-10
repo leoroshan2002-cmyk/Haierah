@@ -16,10 +16,10 @@ const upload = multer({
   },
 });
 
-const uploadToCloudinary = async (file) => {
+const uploadToCloudinary = async (file, folder = 'categories') => {
   return new Promise((resolve, reject) => {
     const uploadOptions = {
-      folder: 'categories',
+      folder,
       allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
       public_id: uuidv4(),
     };

@@ -1,0 +1,1 @@
+import{I as e,b as t,z as n}from"./index-BcyEFzRy.js";var r=e(`chevron-left`,[[`path`,{d:`m15 18-6-6 6-6`,key:`1wnfg3`}]]),i=t();function a(){let e=n();return(0,i.jsxs)(`button`,{onClick:()=>e(-1),className:`flex items-center gap-2 mb-8 text-sm text-zinc-500 hover:text-black transition`,children:[(0,i.jsx)(r,{size:18}),(0,i.jsx)(`span`,{children:`Back`})]})}export{r as n,a as t};

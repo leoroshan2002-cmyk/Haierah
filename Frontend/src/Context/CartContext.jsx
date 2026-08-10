@@ -14,12 +14,19 @@ const getInitialCart = () => {
 };
 
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState(getInitialCart);
+  const [cart, setCart] = useState([]);
+  const [isCartReady, setIsCartReady] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const initialCart = getInitialCart();
+    setCart(Array.isArray(initialCart) ? initialCart : []);
+    setIsCartReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isCartReady || typeof window === "undefined") return;
     window.localStorage.setItem("haierah-cart", JSON.stringify(cart));
-  }, [cart]);
+  }, [cart, isCartReady]);
 
   const getCartItemKey = (product) => {
     const productId = product?.id || product?._id || product?.productId || "product";
@@ -96,7 +103,7 @@ export function CartProvider({ children }) {
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, getTotalPrice, getCartCount, clearCart }}>
+    <CartContext.Provider value={{ cart, isCartReady, addToCart, removeFromCart, updateQuantity, getTotalPrice, getCartCount, clearCart }}>
       {children}
     </CartContext.Provider>
   );
