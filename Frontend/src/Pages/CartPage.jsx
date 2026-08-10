@@ -1,15 +1,20 @@
-import { useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Share2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { useCart } from "../Context/CartContext";
+import { useAuth } from "../Context/AuthContext";
 import RecommendationPage from "../Components/RecommendationPage";
 import PageBack from "../Components/CommonDetails/PageBack";
+
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const cartLeftRef = useRef(null);
   const cartRightRef = useRef(null);
+  const [promoCode, setPromoCode] = useState("");
 
   useEffect(() => {
     if (cart.length === 0) return;
@@ -43,6 +48,21 @@ export default function CartPage() {
   const tax = subtotal * 0.05;
   const shipping = subtotal > 500 ? 0 : 40;
   const total = subtotal + shipping + tax;
+
+  const handleProceedToCheckout = () => {
+    if (cart.length === 0) return;
+
+    if (!user) {
+      navigate("/login", {
+        state: { from: { pathname: "/checkout" } },
+        replace: true,
+      });
+      return;
+    }
+
+    navigate("/checkout");
+  };
+
   if (cart.length === 0) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-[#faf8f6]">
@@ -255,25 +275,35 @@ export default function CartPage() {
 
               </div>
 
-              <div className="flex mt-8 gap-3">
+              <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <label className="mb-2 block text-sm font-medium text-slate-700">
+                  Promo Code
+                </label>
 
-                <input
-                  placeholder="Promo Code"
-                  className="flex-1  rounded-xl px-4 py-3 outline-none"
-                />
+                <div className="flex gap-3">
+                  <input
+                    value={promoCode}
+                    onChange={(event) => setPromoCode(event.target.value)}
+                    placeholder="Enter code"
+                    className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none ring-0 transition focus:border-[#0d2746]"
+                  />
 
-                <button className="bg-[#0d2746] text-white px-4 rounded-xl">
-                  Apply
-                </button>
-
+                  <button
+                    type="button"
+                    className="rounded-xl bg-[#0d2746] px-4 py-3 text-sm font-medium text-white transition hover:bg-black"
+                  >
+                    Apply
+                  </button>
+                </div>
               </div>
 
-              <Link
-                to="/checkout"
-                className="block mt-8 text-center bg-[#0d2746] text-white py-4 rounded-full hover:bg-black duration-300"
+              <button
+                type="button"
+                onClick={handleProceedToCheckout}
+                className="mt-8 block w-full rounded-full bg-[#0d2746] px-6 py-4 text-center text-white transition hover:bg-black duration-300"
               >
                 Proceed to Checkout
-              </Link>
+              </button>
 
             </motion.div>
 

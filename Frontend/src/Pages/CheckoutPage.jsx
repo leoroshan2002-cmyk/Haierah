@@ -17,29 +17,9 @@ export default function CheckoutPage() {
   const { cart, isCartReady } = useCart();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("Cash on Delivery");
 
-  if (!isCartReady) {
-    return (
-      <section className="min-h-screen bg-[#faf8f6] flex items-center justify-center py-14">
-        <div className="text-center text-gray-500">Loading your checkout…</div>
-      </section>
-    );
-  }
-
-  if (cart.length === 0) {
-    return (
-      <section className="min-h-screen bg-[#faf8f6] py-14">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h1 className="text-4xl font-serif font-bold mb-4">Your cart is empty</h1>
-          <p className="text-gray-500 mb-8">Add a product before continuing to checkout.</p>
-          <Link to="/cart" className="bg-[#0d2746] text-white px-8 py-4 rounded-full hover:bg-black duration-300">
-            Go to cart
-          </Link>
-        </div>
-      </section>
-    );
-  }
-
   useEffect(() => {
+    if (!isCartReady || cart.length === 0) return;
+
     gsap.from(".checkout-title", {
       y: -40,
       opacity: 100,
@@ -62,7 +42,29 @@ export default function CheckoutPage() {
       delay: 0.4,
       ease: "power3.out",
     });
-  }, []);
+  }, [isCartReady, cart.length]);
+
+  if (!isCartReady) {
+    return (
+      <section className="min-h-screen bg-[#faf8f6] flex items-center justify-center py-14">
+        <div className="text-center text-gray-500">Loading your checkout…</div>
+      </section>
+    );
+  }
+
+  if (cart.length === 0) {
+    return (
+      <section className="min-h-screen bg-[#faf8f6] py-14">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h1 className="text-4xl font-serif font-bold mb-4">Your cart is empty</h1>
+          <p className="text-gray-500 mb-8">Add a product before continuing to checkout.</p>
+          <Link to="/cart" className="bg-[#0d2746] text-white px-8 py-4 rounded-full hover:bg-black duration-300">
+            Go to cart
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="min-h-screen bg-[#faf8f6] py-14">
