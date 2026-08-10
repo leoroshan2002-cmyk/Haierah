@@ -275,7 +275,7 @@ export default function CartPage() {
 
               </div>
 
-              <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              {/* <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Promo Code
                 </label>
@@ -295,7 +295,7 @@ export default function CartPage() {
                     Apply
                   </button>
                 </div>
-              </div>
+              </div> */}
 
               <button
                 type="button"

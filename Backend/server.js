@@ -28,6 +28,12 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  next();
+});
+
 app.use(express.json());
 
 // Handle malformed JSON payloads (body-parser syntax errors)
@@ -63,7 +69,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/categories", categoryRoutes);
 
-const DEFAULT_PORT = Number(process.env.PORT || 5000);
+const DEFAULT_PORT = Number(process.env.PORT || 5001);
 
 const startServer = (port) => {
   const server = app.listen(port, () => {
@@ -78,7 +84,7 @@ const startServer = (port) => {
     } else {
       console.error(`Failed to start server on port ${port}:`, error.message);
     }
-    process.exit(1);
+   
   });
 };
 

@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../Context/AuthContext";
+import { renderGoogleButton } from "../utils/googleAuth";
+import { buildApiUrl } from "../services/api";
 
 import registerImage from "../assets/register.jpg";
 import Logotransparent from "../assets/HaierahLogoTransparent.png";
@@ -9,7 +11,8 @@ import Logotransparent from "../assets/HaierahLogoTransparent.png";
 import PageBack from "../Components/CommonDetails/PageBack";
 export default function Register() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, updateUser } = useAuth();
+  const googleButtonRef = useRef(null);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,18 +37,57 @@ export default function Register() {
     }
   };
 
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || !googleButtonRef.current) return;
+
+    renderGoogleButton({
+      clientId,
+      container: googleButtonRef.current,
+      onSuccess: async (credential) => {
+        const result = await fetch(buildApiUrl('/api/auth/google'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential }),
+        });
+
+        const contentType = result.headers.get('content-type') || '';
+        let data = {};
+
+        if (contentType.includes('application/json')) {
+          data = await result.json();
+        } else {
+          const text = await result.text();
+          throw new Error(text || 'Google sign-up failed.');
+        }
+
+        if (!result.ok) {
+          alert(data.message || 'Google sign-up failed.');
+          return;
+        }
+
+        updateUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        navigate('/');
+      },
+      onError: (message) => {
+        alert(message || 'Google sign-up failed.');
+      },
+    });
+  }, [navigate, updateUser]);
+
   return (
     <div className="min-h-screen relative">
       
 
       {/* TOP RIGHT LINK */}
-      <div className="absolute top-10 right-10 z-50 text-sm">
+      {/* <div className="absolute top-10 right-10 z-50 text-sm">
         <span className="text-gray-600">Already have an account?</span>
 
         <Link to="/login" className="ml-2 font-semibold hover:underline">
           Sign In
         </Link>
-      </div>
+      </div> */}
 
       {/* MAIN GRID */}
       <div className="min-h-screen grid lg:grid-cols-2 bg-[#F8F7F5]">
@@ -59,7 +101,7 @@ export default function Register() {
           <img
             src={registerImage}
             alt="HAIERAH Register"
-            className="w-full h-screen object-cover"
+            className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-black/20"></div>
 
@@ -163,8 +205,14 @@ export default function Register() {
             >
               Create Account
             </button>
+            <br />
 
-            <p className="text-center mt-8 text-gray-600">
+
+            <div className="mt-4 w-full">
+              <div ref={googleButtonRef} className="w-full flex justify-center" />
+            </div>
+
+            <p className="text-center mt-2 text-gray-600">
               Already have an account?
               <Link to="/login" className="ml-2 font-semibold hover:underline">
                 Sign In

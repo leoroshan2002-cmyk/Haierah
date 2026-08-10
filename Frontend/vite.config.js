@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 1000,
     },
     server: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      },
       proxy: {
         '/api': {
           target: apiUrl,

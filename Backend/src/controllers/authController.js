@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const toAuthUserResponse = (user) => ({
   id: user._id.toString(),
@@ -107,5 +109,58 @@ export const loginUser = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const googleAuth = async (req, res) => {
+  try {
+    const { credential } = req.body || {};
+
+    if (!credential) {
+      return res.status(400).json({ message: 'Google credential is required' });
+    }
+
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      return res.status(500).json({ message: 'Google auth is not configured on the server.' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload || !payload.email) {
+      return res.status(400).json({ message: 'Google account email is missing.' });
+    }
+
+    const email = payload.email.toLowerCase();
+    const name = payload.name || payload.given_name || 'Google User';
+    const avatar = payload.picture || '';
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      const generatedPassword = `google-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      user = await User.create({
+        name,
+        email,
+        avatar,
+        password: await bcrypt.hash(generatedPassword, 10),
+        role: 'user',
+      });
+    }
+
+    return res.status(200).json({
+      message: 'Google login successful',
+      user: toAuthUserResponse({
+        ...user.toObject(),
+        avatar: user.avatar || avatar,
+      }),
+    });
+  } catch (error) {
+    console.error('Google auth failed:', error);
+    return res.status(401).json({ message: 'Google authentication failed.' });
   }
 };

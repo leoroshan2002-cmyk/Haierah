@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useCart } from "../Context/CartContext";
 import { useWishlist } from "../Context/WhislistContext";
 import { consumePendingAuthAction } from "../utils/authActionUtils";
+import { renderGoogleButton } from "../utils/googleAuth";
+import { buildApiUrl } from "../services/api";
 import { motion } from "framer-motion";
 import PageBack from "../Components/CommonDetails/PageBack";
 import loginImage from "../assets/login.jpg";
@@ -12,12 +14,54 @@ import Logotransparent from "../assets/HaierahLogoTransparent.png";
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, updateUser } = useAuth();
+  const googleButtonRef = useRef(null);
   const { addToCart } = useCart();
   const { toggleWishlist } = useWishlist();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || !googleButtonRef.current) return;
+
+    renderGoogleButton({
+      clientId,
+      container: googleButtonRef.current,
+      onSuccess: async (credential) => {
+        const result = await fetch(buildApiUrl('/api/auth/google'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential }),
+        });
+
+        const contentType = result.headers.get('content-type') || '';
+        let data = {};
+
+        if (contentType.includes('application/json')) {
+          data = await result.json();
+        } else {
+          const text = await result.text();
+          throw new Error(text || 'Google sign-in failed.');
+        }
+
+        if (!result.ok) {
+          alert(data.message || 'Google sign-in failed.');
+          return;
+        }
+
+        updateUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+
+        const destination = location.state?.from?.pathname || '/';
+        navigate(destination, { replace: true });
+      },
+      onError: (message) => {
+        alert(message || 'Google sign-in failed.');
+      },
+    });
+  }, [location.state, navigate, updateUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,7 +110,7 @@ export default function Login() {
         
       
       {/* TOP RIGHT */}
-      <div className="absolute top-10 right-10 z-50 text-sm">
+      {/* <div className="absolute top-10 right-10 z-50 text-sm">
          <div className="absolute top-8 left-8 z-50">
     <PageBack />
   </div>
@@ -78,7 +122,7 @@ export default function Login() {
         >
           Create account
         </Link>
-      </div>
+      </div> */}
 
       {/* LEFT SIDE IMAGE */}
       <div className="relative hidden lg:block">
@@ -166,6 +210,10 @@ export default function Login() {
           >
             Sign In
           </button>
+
+          <div className="mt-4 w-full">
+            <div ref={googleButtonRef} className="w-full flex justify-center" />
+          </div>
 
          
             
