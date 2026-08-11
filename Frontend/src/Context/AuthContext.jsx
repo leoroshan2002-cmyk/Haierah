@@ -134,12 +134,47 @@ export const AuthProvider = ({ children }) => {
       return {
         success: true,
         user: data.user,
+        emailVerificationSent: data.emailVerificationSent,
       };
     } catch (error) {
       return {
         success: false,
         message: "Unable to reach authentication server. Please try again.",
       };
+    }
+  };
+
+  const resendEmailVerification = async (email) => {
+    try {
+      const response = await fetch(buildApiUrl('/api/auth/email/verify/request'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return { success: false, message: data.message || 'Unable to resend verification code.' };
+      }
+      return { success: true, message: data.message || 'Verification code resent.' };
+    } catch (error) {
+      return { success: false, message: 'Unable to reach authentication server. Please try again.' };
+    }
+  };
+
+  const confirmEmailVerificationCode = async (email, code) => {
+    try {
+      const response = await fetch(buildApiUrl('/api/auth/email/verify/confirm'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return { success: false, message: data.message || 'Verification failed.' };
+      }
+      return { success: true, message: data.message || 'Email verified successfully.' };
+    } catch (error) {
+      return { success: false, message: 'Unable to reach authentication server. Please try again.' };
     }
   };
 
@@ -158,7 +193,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, login, register, resendEmailVerification, confirmEmailVerificationCode, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -21,6 +21,9 @@ export default function Register() {
   const [googleCredential, setGoogleCredential] = useState(null);
   const [googleSignedIn, setGoogleSignedIn] = useState(false);
   const [googleAccountLoaded, setGoogleAccountLoaded] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationStage, setVerificationStage] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -53,32 +56,83 @@ export default function Register() {
     }
 
     if (googleCredential) {
-      const result = await fetch(buildApiUrl('/api/auth/google'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: googleCredential, password, confirmPassword }),
-      });
-
-      const data = await result.json();
-
-      if (!result.ok) {
-        alert(data.message || 'Google registration failed.');
+      const googlePayload = decodeJwtPayload(googleCredential);
+      if (googlePayload?.email_verified !== true) {
+        alert('Google account email is not verified. Please use a verified Google account.');
         return;
       }
+    }
 
-      alert('Google registration completed and password saved successfully.');
-      navigate('/login');
+    const allowedEmails = import.meta.env.VITE_AUTHORIZED_EMAILS?.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean) || [];
+    const allowedDomains = import.meta.env.VITE_AUTHORIZED_EMAIL_DOMAINS?.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean) || [];
+    const trimmedEmail = email.trim().toLowerCase();
+    const isAuthorizedEmail = () => {
+      if (!trimmedEmail) return false;
+      if (allowedEmails.length && allowedEmails.includes(trimmedEmail)) return true;
+      if (
+        allowedDomains.length &&
+        allowedDomains.some((domain) => trimmedEmail.endsWith(`@${domain}`))
+      ) return true;
+      return allowedEmails.length === 0 && allowedDomains.length === 0;
+    };
+
+    if (!isAuthorizedEmail()) {
+      alert('Email is not authorized for registration. Use an approved email address.');
       return;
     }
 
     const result = await register(name, email, password, confirmPassword);
-
-    if (result.success) {
-      alert("Account created successfully!");
-      navigate("/login");
-    } else {
+    if (!result.success) {
       alert(result.message || "Email already exists!");
+      return;
     }
+
+    if (result.emailVerificationSent) {
+      setVerificationStage(true);
+      setVerificationMessage('A 6-digit verification code was sent to your email. Enter it below to verify your account.');
+      return;
+    }
+
+    alert("Account created successfully!");
+    navigate("/login");
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode.trim()) {
+      alert('Please enter the verification code.');
+      return;
+    }
+
+    const response = await fetch(buildApiUrl('/api/auth/email/verify/confirm'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code: verificationCode.trim() }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      alert(data.message || 'Verification failed.');
+      return;
+    }
+
+    alert(data.message || 'Email verified successfully. You can now log in.');
+    navigate('/login');
+  };
+
+  const handleResendCode = async () => {
+    const response = await fetch(buildApiUrl('/api/auth/email/verify/request'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      alert(data.message || 'Could not resend verification code.');
+      return;
+    }
+
+    alert(data.message || 'Verification code resent to your email.');
   };
 
   useEffect(() => {
@@ -221,6 +275,35 @@ export default function Register() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
+
+            {verificationStage && (
+              <>
+                <p className="text-sm text-gray-700 mb-4">{verificationMessage}</p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="Enter verification code"
+                  className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-5 outline-none focus:ring-2 focus:ring-black"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyCode}
+                  className="w-full bg-blue-600 text-white py-4 rounded-xl uppercase tracking-widest hover:bg-blue-700 transition mb-4"
+                >
+                  Verify Email
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  className="w-full bg-gray-100 text-black py-4 rounded-xl uppercase tracking-widest hover:bg-gray-200 transition"
+                >
+                  Resend Code
+                </button>
+              </>
+            )}
 
             {/* TERMS */}
             <div className="flex items-start gap-3 mb-6">

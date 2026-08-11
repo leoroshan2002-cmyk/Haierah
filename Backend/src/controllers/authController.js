@@ -7,6 +7,41 @@ import emailService from '../services/email/emailService.js';
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const parseCsvList = (value) =>
+  String(value || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+
+const generateSixDigitCode = () => String(crypto.randomInt(100000, 1000000));
+
+const buildEmailVerificationEmail = (name, code) => {
+  const displayName = name ? String(name).split(' ')[0] : 'there';
+  return {
+    subject: 'Verify your email address',
+    text: `Hi ${displayName},\n\nUse the following 6-digit code to verify your email address: ${code}\nThis code expires in 10 minutes.\n\nIf you did not create an account, please ignore this email.`,
+    html: `<p>Hi ${displayName},</p><p>Use the following <strong>6-digit code</strong> to verify your email address: <strong>${code}</strong></p><p>This code expires in 10 minutes.</p><p>If you did not create an account, please ignore this email.</p>`,
+  };
+};
+
+const authorizedEmails = parseCsvList(process.env.AUTHORIZED_EMAILS);
+const authorizedDomains = parseCsvList(process.env.AUTHORIZED_EMAIL_DOMAINS);
+
+const isEmailAuthorized = (email) => {
+  const trimmed = String(email || '').trim().toLowerCase();
+  if (!trimmed) return false;
+  if (authorizedEmails.length && authorizedEmails.includes(trimmed)) {
+    return true;
+  }
+  if (
+    authorizedDomains.length &&
+    authorizedDomains.some((domain) => trimmed.endsWith(`@${domain}`))
+  ) {
+    return true;
+  }
+  return authorizedEmails.length === 0 && authorizedDomains.length === 0;
+};
+
 const generateSixDigitOtp = () => String(crypto.randomInt(100000, 1000000));
 const buildSetPasswordEmail = (name, otp) => {
   const displayName = name ? String(name).split(' ')[0] : 'there';
@@ -51,10 +86,26 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Password and confirmPassword do not match' });
     }
 
+    if (!isEmailAuthorized(trimmedEmail)) {
+      return res.status(403).json({
+        message: 'Email is not authorized for registration. Use an approved email address.',
+      });
+    }
+
     const existingUser = await User.findOne({ email: trimmedEmail });
     if (existingUser) {
+      if (!existingUser.emailVerified) {
+        return res.status(409).json({
+          message: 'This email is already registered but not verified. Please check your inbox or request a new verification code.',
+        });
+      }
       return res.status(409).json({ message: 'User already exists' });
     }
+
+    const verificationCode = generateSixDigitCode();
+    const hashedVerificationCode = await bcrypt.hash(verificationCode, 10);
+    const now = new Date();
+    const verificationExpiresAt = new Date(now.getTime() + 10 * 60 * 1000);
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -64,14 +115,118 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       role: role || 'user',
       authProvider: 'local',
+      emailVerified: false,
+      emailVerificationCode: hashedVerificationCode,
+      emailVerificationExpiresAt: verificationExpiresAt,
+      emailVerificationRequestedAt: now,
+    });
+
+    const { subject, text, html } = buildEmailVerificationEmail(name, verificationCode);
+    await emailService.sendMail({
+      to: trimmedEmail,
+      subject,
+      text,
+      html,
+      from: process.env.EMAIL_FROM || `no-reply@${process.env.APP_DOMAIN || 'example.com'}`,
     });
 
     res.status(201).json({
-      message: 'User registered successfully',
+      message: 'User registered successfully. Verification code sent to your email.',
       user: toAuthUserResponse(user),
+      emailVerificationSent: true,
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const requestEmailVerificationCode = async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    const trimmedEmail = String(email || '').trim().toLowerCase();
+
+    if (!trimmedEmail) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    const user = await User.findOne({ email: trimmedEmail });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found for this email' });
+    }
+    if (user.emailVerified) {
+      return res.status(400).json({ message: 'Email is already verified' });
+    }
+
+    const verificationCode = generateSixDigitCode();
+    const hashedVerificationCode = await bcrypt.hash(verificationCode, 10);
+    const now = new Date();
+    const verificationExpiresAt = new Date(now.getTime() + 10 * 60 * 1000);
+
+    user.emailVerificationCode = hashedVerificationCode;
+    user.emailVerificationExpiresAt = verificationExpiresAt;
+    user.emailVerificationRequestedAt = now;
+    await user.save();
+
+    const { subject, text, html } = buildEmailVerificationEmail(user.name, verificationCode);
+    await emailService.sendMail({
+      to: trimmedEmail,
+      subject,
+      text,
+      html,
+      from: process.env.EMAIL_FROM || `no-reply@${process.env.APP_DOMAIN || 'example.com'}`,
+    });
+
+    return res.status(200).json({ message: 'Verification code resent to your email address' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const confirmEmailVerificationCode = async (req, res) => {
+  try {
+    const { email, code } = req.body || {};
+    const trimmedEmail = String(email || '').trim().toLowerCase();
+
+    if (!trimmedEmail || !code) {
+      return res.status(400).json({ message: 'Email and verification code are required' });
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    const user = await User.findOne({ email: trimmedEmail });
+    if (!user) {
+      return res.status(404).json({ message: 'No account found for this email' });
+    }
+    if (user.emailVerified) {
+      return res.status(400).json({ message: 'Email is already verified' });
+    }
+    if (!user.emailVerificationCode || !user.emailVerificationExpiresAt) {
+      return res.status(400).json({ message: 'No verification code has been issued. Please request a code.' });
+    }
+    if (new Date() > user.emailVerificationExpiresAt) {
+      return res.status(400).json({ message: 'Verification code has expired. Please request a new code.' });
+    }
+
+    const isValidCode = await bcrypt.compare(String(code).trim(), user.emailVerificationCode);
+    if (!isValidCode) {
+      return res.status(400).json({ message: 'Invalid verification code. Please try again.' });
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationCode = '';
+    user.emailVerificationExpiresAt = undefined;
+    user.emailVerificationRequestedAt = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: 'Email verified successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -162,7 +317,19 @@ export const googleAuth = async (req, res) => {
     const name = payload.name || payload.given_name || 'Google User';
     const avatar = payload.picture || '';
 
+    if (payload.email_verified !== true) {
+      return res.status(403).json({
+        message: 'Google account email is not verified. Please use a verified Google account.',
+      });
+    }
+
     let user = await User.findOne({ email });
+    if (!user && !isEmailAuthorized(email)) {
+      return res.status(403).json({
+        message: 'Google account email is not authorized for registration. Contact administrator.',
+      });
+    }
+
     const hashedPassword = password ? await bcrypt.hash(password, 10) : '';
 
     if (!user) {
