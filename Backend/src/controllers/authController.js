@@ -283,7 +283,7 @@ export const loginUser = async (req, res) => {
 export const googleAuth = async (req, res) => {
   try {
     const { credential, password, confirmPassword, createIfMissing } = req.body || {};
-    const allowCreate = createIfMissing !== false;
+    const allowCreate = createIfMissing === true || createIfMissing === 'true';
 
     if (!credential) {
       return res.status(400).json({ message: 'Google credential is required' });
@@ -330,6 +330,12 @@ export const googleAuth = async (req, res) => {
       });
     }
 
+    if (user && user.authProvider !== 'google') {
+      return res.status(401).json({
+        message: 'This account is registered with email/password only. Please sign in using email and password.',
+      });
+    }
+
     const hashedPassword = password ? await bcrypt.hash(password, 10) : '';
 
     if (!user) {
@@ -349,9 +355,6 @@ export const googleAuth = async (req, res) => {
       });
     } else if (user.authProvider === 'google' && !user.password && password) {
       user.password = hashedPassword;
-      await user.save();
-    } else if (!user.authProvider && !user.password) {
-      user.authProvider = 'google';
       await user.save();
     }
 
