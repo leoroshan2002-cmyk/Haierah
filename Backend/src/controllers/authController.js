@@ -1,9 +1,21 @@
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
+import emailService from '../services/email/emailService.js';
 
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const generateSixDigitOtp = () => String(crypto.randomInt(100000, 1000000));
+const buildSetPasswordEmail = (name, otp) => {
+  const displayName = name ? String(name).split(' ')[0] : 'there';
+  return {
+    subject: 'Set your password',
+    text: `Hi ${displayName},\n\nUse this 6-digit code to set your password: ${otp}\nIt expires in 10 minutes.\n\nIf you did not request this, ignore this email.`,
+    html: `<p>Hi ${displayName},</p><p>Use this 6-digit code to set your password: <strong>${otp}</strong></p><p>This code expires in 10 minutes.</p><p>If you did not request this, ignore this email.</p>`,
+  };
+};
 
 const toAuthUserResponse = (user) => ({
   id: user._id.toString(),
@@ -51,6 +63,7 @@ export const registerUser = async (req, res) => {
       email: trimmedEmail,
       password: hashedPassword,
       role: role || 'user',
+      authProvider: 'local',
     });
 
     res.status(201).json({
@@ -98,7 +111,7 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = user.password ? await bcrypt.compare(password, user.password) : false;
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -114,10 +127,20 @@ export const loginUser = async (req, res) => {
 
 export const googleAuth = async (req, res) => {
   try {
-    const { credential } = req.body || {};
+    const { credential, password, confirmPassword, createIfMissing } = req.body || {};
+    const allowCreate = createIfMissing !== false;
 
     if (!credential) {
       return res.status(400).json({ message: 'Google credential is required' });
+    }
+
+    if (password || confirmPassword) {
+      if (!password || !confirmPassword) {
+        return res.status(400).json({ message: 'Both password and confirmPassword are required when setting a password.' });
+      }
+      if (password !== confirmPassword) {
+        return res.status(400).json({ message: 'Password and confirmPassword do not match' });
+      }
     }
 
     if (!process.env.GOOGLE_CLIENT_ID) {
@@ -140,16 +163,29 @@ export const googleAuth = async (req, res) => {
     const avatar = payload.picture || '';
 
     let user = await User.findOne({ email });
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : '';
 
     if (!user) {
-      const generatedPassword = `google-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      if (!allowCreate) {
+        return res.status(409).json({
+          message: 'Google account is not registered. Please use the register page to complete signup with a password.',
+        });
+      }
+
       user = await User.create({
         name,
         email,
         avatar,
-        password: await bcrypt.hash(generatedPassword, 10),
+        password: hashedPassword,
+        authProvider: 'google',
         role: 'user',
       });
+    } else if (user.authProvider === 'google' && !user.password && password) {
+      user.password = hashedPassword;
+      await user.save();
+    } else if (!user.authProvider && !user.password) {
+      user.authProvider = 'google';
+      await user.save();
     }
 
     return res.status(200).json({
@@ -162,5 +198,143 @@ export const googleAuth = async (req, res) => {
   } catch (error) {
     console.error('Google auth failed:', error);
     return res.status(401).json({ message: 'Google authentication failed.' });
+  }
+};
+
+export const requestSetPasswordOtp = async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    const trimmedEmail = String(email || '').trim().toLowerCase();
+
+    if (!trimmedEmail) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
+    const user = await User.findOne({ email: trimmedEmail });
+    if (!user || user.authProvider !== 'google' || user.password) {
+      return res.status(400).json({
+        message: 'Only Google users without an existing password can request a password setup code',
+      });
+    }
+
+    const now = new Date();
+    if (user.setPasswordOtpRequestedAt && now - user.setPasswordOtpRequestedAt < 60 * 1000) {
+      return res.status(429).json({
+        message: 'Please wait a minute before requesting another OTP',
+      });
+    }
+
+    const otp = generateSixDigitOtp();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
+
+    user.setPasswordOtp = hashedOtp;
+    user.setPasswordOtpExpiresAt = expiresAt;
+    user.setPasswordOtpRequestedAt = now;
+    user.setPasswordOtpVerifiedAt = undefined;
+    await user.save();
+
+    const { subject, text, html } = buildSetPasswordEmail(user.name, otp);
+    await emailService.sendMail({
+      to: trimmedEmail,
+      subject,
+      text,
+      html,
+      from: process.env.EMAIL_FROM || `no-reply@${process.env.APP_DOMAIN || 'example.com'}`,
+    });
+
+    res.status(200).json({ message: 'OTP has been sent to your registered email address' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const verifySetPasswordOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body || {};
+    const trimmedEmail = String(email || '').trim().toLowerCase();
+
+    if (!trimmedEmail || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    const user = await User.findOne({ email: trimmedEmail });
+    if (!user || user.authProvider !== 'google' || user.password) {
+      return res.status(400).json({ message: 'Invalid email or OTP' });
+    }
+
+    if (!user.setPasswordOtp || !user.setPasswordOtpExpiresAt) {
+      return res.status(400).json({ message: 'No OTP request found. Please request a new code.' });
+    }
+
+    if (new Date() > user.setPasswordOtpExpiresAt) {
+      user.setPasswordOtp = '';
+      user.setPasswordOtpExpiresAt = undefined;
+      user.setPasswordOtpRequestedAt = undefined;
+      await user.save();
+      return res.status(400).json({ message: 'OTP has expired. Request a new code.' });
+    }
+
+    const isValidOtp = await bcrypt.compare(String(otp), user.setPasswordOtp);
+    if (!isValidOtp) {
+      return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    }
+
+    user.setPasswordOtpVerifiedAt = new Date();
+    await user.save();
+
+    res.status(200).json({ message: 'OTP verified successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const setPasswordWithOtp = async (req, res) => {
+  try {
+    const { email, password, confirmPassword } = req.body || {};
+    const trimmedEmail = String(email || '').trim().toLowerCase();
+
+    if (!trimmedEmail || !password || !confirmPassword) {
+      return res.status(400).json({ message: 'Email, password and confirmPassword are required' });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({ message: 'Password and confirmPassword do not match' });
+    }
+
+    const user = await User.findOne({ email: trimmedEmail });
+    if (!user || user.authProvider !== 'google' || user.password) {
+      return res.status(400).json({
+        message: 'Only Google users without an existing password can set a new password',
+      });
+    }
+
+    if (!user.setPasswordOtpVerifiedAt || !user.setPasswordOtpExpiresAt) {
+      return res.status(400).json({ message: 'OTP must be verified before setting a password' });
+    }
+
+    if (new Date() > user.setPasswordOtpExpiresAt) {
+      user.setPasswordOtp = '';
+      user.setPasswordOtpExpiresAt = undefined;
+      user.setPasswordOtpRequestedAt = undefined;
+      user.setPasswordOtpVerifiedAt = undefined;
+      await user.save();
+      return res.status(400).json({ message: 'OTP has expired. Request a new code.' });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.setPasswordOtp = '';
+    user.setPasswordOtpExpiresAt = undefined;
+    user.setPasswordOtpRequestedAt = undefined;
+    user.setPasswordOtpVerifiedAt = undefined;
+    await user.save();
+
+    res.status(200).json({ message: 'Password has been set successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

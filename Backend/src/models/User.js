@@ -31,7 +31,27 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      trim: true,
+      default: '',
+    },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local',
+    },
+    setPasswordOtp: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    setPasswordOtpExpiresAt: {
+      type: Date,
+    },
+    setPasswordOtpRequestedAt: {
+      type: Date,
+    },
+    setPasswordOtpVerifiedAt: {
+      type: Date,
     },
     role: {
       type: String,

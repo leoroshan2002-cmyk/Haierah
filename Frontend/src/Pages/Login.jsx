@@ -33,7 +33,7 @@ export default function Login() {
         const result = await fetch(buildApiUrl('/api/auth/google'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential }),
+          body: JSON.stringify({ credential, createIfMissing: false }),
         });
 
         const contentType = result.headers.get('content-type') || '';
@@ -47,6 +47,12 @@ export default function Login() {
         }
 
         if (!result.ok) {
+          if (result.status === 409) {
+            alert(data.message || 'Google account not registered. Please register first.');
+            navigate('/register', { replace: true });
+            return;
+          }
+
           alert(data.message || 'Google sign-in failed.');
           return;
         }

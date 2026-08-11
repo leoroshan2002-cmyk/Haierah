@@ -11,19 +11,63 @@ import Logotransparent from "../assets/HaierahLogoTransparent.png";
 import PageBack from "../Components/CommonDetails/PageBack";
 export default function Register() {
   const navigate = useNavigate();
-  const { register, updateUser } = useAuth();
+  const { user, register, updateUser } = useAuth();
   const googleButtonRef = useRef(null);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [googleCredential, setGoogleCredential] = useState(null);
+  const [googleSignedIn, setGoogleSignedIn] = useState(false);
+  const [googleAccountLoaded, setGoogleAccountLoaded] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const decodeJwtPayload = (token) => {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`)
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
+      return;
+    }
+
+    if (googleCredential) {
+      const result = await fetch(buildApiUrl('/api/auth/google'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: googleCredential, password, confirmPassword }),
+      });
+
+      const data = await result.json();
+
+      if (!result.ok) {
+        alert(data.message || 'Google registration failed.');
+        return;
+      }
+
+      alert('Google registration completed and password saved successfully.');
+      navigate('/login');
       return;
     }
 
@@ -45,30 +89,18 @@ export default function Register() {
       clientId,
       container: googleButtonRef.current,
       onSuccess: async (credential) => {
-        const result = await fetch(buildApiUrl('/api/auth/google'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential }),
-        });
-
-        const contentType = result.headers.get('content-type') || '';
-        let data = {};
-
-        if (contentType.includes('application/json')) {
-          data = await result.json();
-        } else {
-          const text = await result.text();
-          throw new Error(text || 'Google sign-up failed.');
+        const payload = decodeJwtPayload(credential);
+        if (payload?.email) {
+          setEmail(payload.email);
         }
-
-        if (!result.ok) {
-          alert(data.message || 'Google sign-up failed.');
-          return;
+        if (payload?.name) {
+          setName(payload.name);
         }
+        setGoogleCredential(credential);
+        setGoogleSignedIn(true);
+        setGoogleAccountLoaded(true);
 
-        updateUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/');
+        alert('Google account loaded. Please complete your site registration by entering a new password and confirming it.');
       },
       onError: (message) => {
         alert(message || 'Google sign-up failed.');
@@ -151,6 +183,7 @@ export default function Register() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              readOnly={googleSignedIn}
             />
 
             <input
@@ -161,7 +194,13 @@ export default function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              readOnly={googleSignedIn}
             />
+            {googleSignedIn && (
+              <p className="text-sm text-green-600 mb-5">
+                Google account loaded. Complete registration by entering a new password and confirming it.
+              </p>
+            )}
 
             <input
               type="password"
@@ -203,14 +242,19 @@ export default function Register() {
               type="submit"
               className="w-full bg-black text-white py-4 rounded-xl uppercase tracking-widest hover:bg-gray-800 transition"
             >
-              Create Account
+              {googleAccountLoaded ? 'Finish Registration' : 'Create Account'}
             </button>
             <br />
 
-
-            <div className="mt-4 w-full">
-              <div ref={googleButtonRef} className="w-full flex justify-center" />
-            </div>
+            {googleAccountLoaded ? (
+              <div className="mt-4 text-center text-sm text-gray-600">
+                Google account loaded. Enter a new password to finish registration.
+              </div>
+            ) : (
+              <div className="mt-4 w-full">
+                <div ref={googleButtonRef} className="w-full flex justify-center" />
+              </div>
+            )}
 
             <p className="text-center mt-2 text-gray-600">
               Already have an account?
