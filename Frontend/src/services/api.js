@@ -2,10 +2,7 @@ import axios from 'axios';
 import campaignData from '../Components/Data/campaignData';
 import { sanitizeProductForClient } from '../utils/productImages';
 
-const defaultProdApiUrl = import.meta.env.MODE === 'production'
-  ? 'https://haierah.onrender.com'
-  : '';
-const rawBaseApiUrl = (import.meta.env.VITE_API_URL || defaultProdApiUrl || '').trim();
+const rawBaseApiUrl = (import.meta.env.VITE_API_URL || '').trim();
 const normalizedBaseApiUrl = rawBaseApiUrl.replace(/\/$/, '');
 
 const apiBaseUrl = (() => {

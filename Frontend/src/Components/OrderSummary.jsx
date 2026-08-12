@@ -15,8 +15,11 @@ import { toast } from "react-toastify";
 import { evaluateCoupon } from "../utils/couponUtils";
 import { PAYMENT_METHODS } from "./CheckoutDetails/PaymentMethod";
 
-export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery", onPaymentError }) {
+export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery", onPaymentError, onOrderComplete }) {
     const [showSuccess, setShowSuccess] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [orderStatusMessage, setOrderStatusMessage] = useState("");
+    const [confirmedOrderId, setConfirmedOrderId] = useState("");
     const [couponCode, setCouponCode] = useState("");
     const [couponMessage, setCouponMessage] = useState("");
     const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -175,6 +178,9 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
         const orderPayload = await createOrderPayload();
 
         try {
+            setIsProcessing(true);
+            setOrderStatusMessage("Processing your order...");
+
             if (selectedPaymentMethod === PAYMENT_METHODS.cod.value) {
                 await apiClient.post(buildApiUrl("/api/orders"), {
                     orderId: orderPayload.orderId,
@@ -199,7 +205,11 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                 }
 
                 clearCart();
+                setIsProcessing(false);
+                setConfirmedOrderId(orderPayload.orderId);
                 setShowSuccess(true);
+                setOrderStatusMessage("Your order was placed successfully.");
+                onOrderComplete?.({ orderId: orderPayload.orderId, paymentMethod: selectedPaymentMethod });
                 toast.success("Order placed successfully.");
 
                 setTimeout(() => {
@@ -240,7 +250,11 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                                 window.dispatchEvent(new Event("haierah-order-created"));
                             }
                             clearCart();
+                            setIsProcessing(false);
+                            setConfirmedOrderId(orderPayload.orderId);
+                            setOrderStatusMessage("Your order was placed successfully.");
                             setShowSuccess(true);
+                            onOrderComplete?.({ orderId: orderPayload.orderId, paymentMethod: selectedPaymentMethod });
                             toast.success("Payment successful. Order placed.");
                             setTimeout(() => {
                                 setShowSuccess(false);
@@ -275,6 +289,8 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
             const razorpayInstance = new window.Razorpay(options);
             razorpayInstance.open();
         } catch (error) {
+            setIsProcessing(false);
+            setOrderStatusMessage("Order failed. Please try again.");
             const responseData = error?.response?.data;
             const requestInfo = error?.config ? {
                 url: error.config.url,
@@ -461,21 +477,30 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
 
             </div>
 
+            {orderStatusMessage && !showSuccess && (
+                <div className="mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-5 text-center text-blue-700">
+                    <p className="text-base font-semibold">{orderStatusMessage}</p>
+                    {isProcessing && (
+                        <p className="mt-2 text-sm text-blue-600">Hang tight while we confirm your order and send the notification.</p>
+                    )}
+                </div>
+            )}
+
             {/* Button */}
 
             <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: cart.length === 0 || isProcessing ? 1 : 1.03 }}
+                whileTap={{ scale: cart.length === 0 || isProcessing ? 1 : 0.98 }}
                 onClick={handlePlaceOrder}
-                disabled={cart.length === 0}
+                disabled={cart.length === 0 || isProcessing}
                 className={`mt-8 w-full rounded-full py-4
     flex justify-center items-center gap-3 text-lg font-medium transition-all
-    ${cart.length === 0
-                        ? "bg-gray-300 cursor-not-allowed"
+    ${cart.length === 0 || isProcessing
+                        ? "bg-gray-300 cursor-not-allowed text-gray-600"
                         : "bg-[#0d2746] hover:bg-black text-white"
                     }`}
             >
-                Place Order
+                {isProcessing ? 'Processing Order...' : 'Place Order'}
                 <ArrowRight size={20} />
             </motion.button>
             <AnimatePresence>
@@ -535,7 +560,9 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                             >
                                 Thank you for shopping with us.
                                 <br />
-                                Your order has been placed successfully.
+                                {confirmedOrderId ? `Order #${confirmedOrderId} has been placed.` : 'Your order has been placed successfully.'}
+                                <br />
+                                You’ll receive your confirmation and tracking details via email soon.
                             </motion.p>
 
                             <motion.div

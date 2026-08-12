@@ -16,6 +16,7 @@ import PageBack from "../Components/CommonDetails/PageBack";
 export default function CheckoutPage() {
   const { cart, isCartReady } = useCart();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("Cash on Delivery");
+  const [orderCompleted, setOrderCompleted] = useState(false);
 
   useEffect(() => {
     if (!isCartReady || cart.length === 0) return;
@@ -100,21 +101,33 @@ export default function CheckoutPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-200">
+            {orderCompleted ? (
+              <div className="overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-200 p-12 text-center">
+                <h2 className="text-4xl font-serif font-bold mb-4">Order received</h2>
+                <p className="text-gray-600 text-lg mb-6">
+                  Your checkout details are cleared and confirmation is on its way.
+                </p>
+                <p className="text-gray-500">
+                  Thank you for your purchase. We will email your receipt and shipping information shortly.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-3xl bg-white shadow-lg border border-gray-200">
 
-              <LoginSection />
+                <LoginSection />
 
-              <AddressSection />
+                <AddressSection />
 
-              <PaymentSection selectedMethodValue={selectedPaymentMethod} onSelectMethod={setSelectedPaymentMethod} />
+                <PaymentSection selectedMethodValue={selectedPaymentMethod} onSelectMethod={setSelectedPaymentMethod} />
 
-              {/* <CardDetails /> */}
+                {/* <CardDetails /> */}
 
-              <DeliverySection />
+                <DeliverySection />
 
-              <OrderReview />
+                <OrderReview />
 
-            </div>
+              </div>
+            )}
           </motion.div>
 
           {/* RIGHT SIDE */}
@@ -126,7 +139,11 @@ export default function CheckoutPage() {
           >
             <div className="sticky top-28">
 
-              <OrderSummary selectedPaymentMethod={selectedPaymentMethod} onPaymentError={(message) => console.warn(message)} />
+              <OrderSummary
+                selectedPaymentMethod={selectedPaymentMethod}
+                onPaymentError={(message) => console.warn(message)}
+                onOrderComplete={() => setOrderCompleted(true)}
+              />
 
             </div>
           </motion.div>

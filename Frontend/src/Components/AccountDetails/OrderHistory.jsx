@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiClient } from "../../services/api";
+import { apiClient, buildApiUrl } from "../../services/api";
 import OrderCard from "../orders/OrderCard";
 
 const normalizeOrder = (order) => ({
@@ -76,7 +76,7 @@ export default function OrderHistory() {
         return;
       }
 
-      const { data } = await apiClient.get(`/api/orders/user/${userId}`);
+      const { data } = await apiClient.get(buildApiUrl(`/api/orders/user/${userId}`));
       const nextOrders = Array.isArray(data?.orders) ? data.orders.map(normalizeOrder) : [];
       saveOrders(nextOrders);
     } catch (error) {
@@ -107,7 +107,7 @@ export default function OrderHistory() {
 
   const handleUpdateOrder = async (orderId, nextStatus) => {
     try {
-      const { data } = await apiClient.patch(`/api/orders/${encodeURIComponent(orderId)}/status`, { status: nextStatus });
+      const { data } = await apiClient.patch(buildApiUrl(`/api/orders/${encodeURIComponent(orderId)}/status`), { status: nextStatus });
       const updatedOrders = orders.map((order) => {
         const currentId = String(order.id || order.orderId || order._id || "");
         return currentId === String(orderId) ? normalizeOrder({ ...order, ...data.order }) : order;
@@ -135,7 +135,7 @@ export default function OrderHistory() {
     }
 
     try {
-      const { data } = await apiClient.patch(`/api/orders/${encodeURIComponent(normalizedId)}/cancel`, { status: "Cancelled" });
+      const { data } = await apiClient.patch(buildApiUrl(`/api/orders/${encodeURIComponent(normalizedId)}/cancel`), { status: "Cancelled" });
       const updatedOrders = orders.map((order) => {
         const currentId = String(order.id || order.orderId || order._id || "");
         return currentId === normalizedId ? normalizeOrder({ ...order, ...data.order }) : order;
@@ -147,7 +147,19 @@ export default function OrderHistory() {
         window.dispatchEvent(new Event("haierah-order-created"));
       }
     } catch (error) {
-      console.error("Failed to cancel order", error);
+      const requestInfo = error?.config ? {
+        url: error.config.url,
+        method: error.config.method,
+        baseURL: error.config.baseURL,
+        headers: error.config.headers,
+      } : undefined;
+      console.error("Failed to cancel order", {
+        message: error?.message,
+        code: error?.code,
+        requestInfo,
+        responseData: error?.response?.data,
+        error,
+      });
       alert(error?.response?.data?.message || "Unable to cancel this order right now.");
     }
   };
