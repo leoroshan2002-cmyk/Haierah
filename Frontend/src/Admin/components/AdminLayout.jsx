@@ -27,7 +27,7 @@ const navItems = [
   { id: 'campaigns', label: 'Campaigns', icon: Layout },
   { id: 'customers', label: 'Customers', icon: Users },
   { id: 'inventory', label: 'Inventory', icon: Warehouse },
-  { id: 'cms', label: 'CMS Control', icon: Layout },
+  // { id: 'cms', label: 'CMS Control', icon: Layout },
   { id: 'coupons', label: 'Coupons', icon: Percent },
   { id: 'analytics', label: 'Analytics', icon: LineChart },
   { id: 'settings', label: 'Settings', icon: SettingsIcon }
