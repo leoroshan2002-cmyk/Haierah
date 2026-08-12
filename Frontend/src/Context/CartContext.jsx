@@ -14,14 +14,11 @@ const getInitialCart = () => {
 };
 
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState([]);
-  const [isCartReady, setIsCartReady] = useState(false);
-
-  useEffect(() => {
+  const [cart, setCart] = useState(() => {
     const initialCart = getInitialCart();
-    setCart(Array.isArray(initialCart) ? initialCart : []);
-    setIsCartReady(true);
-  }, []);
+    return Array.isArray(initialCart) ? initialCart : [];
+  });
+  const [isCartReady] = useState(() => typeof window !== "undefined");
 
   useEffect(() => {
     if (!isCartReady || typeof window === "undefined") return;

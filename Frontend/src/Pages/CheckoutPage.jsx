@@ -44,7 +44,7 @@ export default function CheckoutPage() {
     });
   }, [isCartReady, cart.length]);
 
-  if (!isCartReady) {
+  if (!isCartReady && cart.length === 0) {
     return (
       <section className="min-h-screen bg-[#faf8f6] flex items-center justify-center py-14">
         <div className="text-center text-gray-500">Loading your checkout…</div>
