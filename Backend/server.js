@@ -30,11 +30,6 @@ app.use(
   }),
 );
 
-app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  next();
-});
-
 app.use(express.json());
 
 // Handle malformed JSON payloads (body-parser syntax errors)
