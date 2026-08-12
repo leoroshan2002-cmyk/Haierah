@@ -11,6 +11,7 @@ import orderRoutes from "./src/routes/orderRoutes.js";
 import paymentRoutes from "./src/routes/paymentRoutes.js";
 import campaignRoutes from "./src/routes/campaignRoutes.js";
 import categoryRoutes from "./src/routes/categoryRoutes.js";
+import contactRoutes from "./src/routes/contactRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -68,6 +69,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/contact", contactRoutes);
 
 const DEFAULT_PORT = Number(process.env.PORT || 5001);
 

@@ -33,6 +33,15 @@ const NotFound = lazy(() => import("./Pages/NotFound"));
 const Login = lazy(() => import("./Pages/Login"));
 const Register = lazy(() => import("./Pages/Register"));
 const OrderSuccessPage = lazy(() => import("./Pages/OrderSuccessPage"));
+const BestSellers = lazy(() => import("./Components/footer/BestSellers"));
+const ShippingReturns = lazy(() => import("./Components/footer/ShippingReturns"));
+const PrivacyPolicy = lazy(() => import("./Components/footer/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./Components/footer/TermsOfService"));
+const Contact = lazy(() => import("./Components/footer/Contact"));
+const BrandStory = lazy(() => import("./Components/footer/BrandStory"));
+const Sustainability = lazy(() => import("./Components/footer/Sustainability"));
+const Press = lazy(() => import("./Components/footer/Press"));
+const StoreLocator = lazy(() => import("./Components/footer/StoreLocator"));
 
 const LazyRoute = ({ component: Component }) => (
   <Suspense fallback={<div className="min-h-screen bg-[#f8f7f5]" /> }>
@@ -72,6 +81,15 @@ const App = () => {
 
             <Route element={<Layout />}>
               <Route path="/new-arrivals" element={<LazyRoute component={NewArrivals} />} />
+              <Route path="/best-sellers" element={<LazyRoute component={BestSellers} />} />
+              <Route path="/shipping-returns" element={<LazyRoute component={ShippingReturns} />} />
+              <Route path="/privacy-policy" element={<LazyRoute component={PrivacyPolicy} />} />
+              <Route path="/terms-of-service" element={<LazyRoute component={TermsOfService} />} />
+              <Route path="/contact" element={<LazyRoute component={Contact} />} />
+              <Route path="/brand-story" element={<LazyRoute component={BrandStory} />} />
+              <Route path="/sustainability" element={<LazyRoute component={Sustainability} />} />
+              <Route path="/press" element={<LazyRoute component={Press} />} />
+              <Route path="/store-locator" element={<LazyRoute component={StoreLocator} />} />
               <Route path="/products" element={<LazyRoute component={ProductsPage} />} />
               <Route path="/category/:slug" element={<LazyRoute component={CategoryPage} />} />
               <Route path="/product/:id" element={<LazyRoute component={ProductPage} />} />

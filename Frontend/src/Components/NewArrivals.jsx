@@ -1,37 +1,42 @@
 import { ArrowRight } from "lucide-react";
-
-const products = [
-  {
-    name: "Ocean Blue Polo",
-    price: "₹89.00",
-    image:
-      "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Summer Linen Blouse",
-    price: "₹125.00",
-    image:
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Minimal Leather Court",
-    price: "₹210.00",
-    image:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    name: "Nomad Silver Watch",
-    price: "₹345.00",
-    image:
-      "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=800&q=80",
-  },
-];
+import React, { useEffect, useState } from "react";
+import { fetchProducts } from "../services/api";
+import { normalizeImageList } from "../utils/productImages";
+import { Link } from "react-router-dom";
+import BackButton from "../Components/BackButton";
 
 export default function NewArrivals() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      const all = await fetchProducts();
+      if (!mounted) return;
+
+      // Choose most recent products. Prefer createdAt, fallback to id
+      const sorted = all.slice().sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : (a.id || 0);
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : (b.id || 0);
+        return bTime - aTime;
+      });
+
+      setProducts(sorted.slice(0, 8));
+    };
+
+    load();
+
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-20">
+
+      <BackButton />
       {/* Heading */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+       
         <div>
           <span className="uppercase tracking-[4px] text-xs text-gray-500">
             New Season
@@ -93,28 +98,39 @@ export default function NewArrivals() {
         {/* Products */}
         <div className="lg:col-span-3 overflow-x-auto scrollbar-hide">
           <div className="flex gap-6 pb-4 w-max">
-            {products.map((product) => (
-              <div
-                key={product.name}
-                className="w-[280px] flex-shrink-0 group cursor-pointer"
-              >
-                <div className="overflow-hidden rounded-3xl bg-gray-100">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-[380px] object-cover transition duration-700 group-hover:scale-105"
-                  />
-                </div>
+            {products.length > 0 ? (
+              products.map((product) => {
+                const images = normalizeImageList(product.images || [product.image]);
+                const image = images[0] || product.image || "";
+                const priceValue = product.discountPrice || product.price || 0;
 
-                <div className="mt-5">
-                  <h3 className="text-lg font-medium group-hover:text-gray-800 transition">
-                    {product.name}
-                  </h3>
+                return (
+                  <Link
+                    to={`/product/${product.id}`}
+                    key={product.id || product.slug || product.name}
+                    className="w-[280px] flex-shrink-0 group cursor-pointer"
+                  >
+                    <div className="overflow-hidden rounded-3xl bg-gray-100">
+                      <img
+                        src={image}
+                        alt={product.name}
+                        className="w-full h-[380px] object-cover transition duration-700 group-hover:scale-105"
+                      />
+                    </div>
 
-                  <p className="text-gray-500 mt-1">{product.price}</p>
-                </div>
-              </div>
-            ))}
+                    <div className="mt-5">
+                      <h3 className="text-lg font-medium group-hover:text-gray-800 transition">
+                        {product.name}
+                      </h3>
+
+                      <p className="text-gray-500 mt-1">₹{priceValue}</p>
+                    </div>
+                  </Link>
+                );
+              })
+            ) : (
+              <div className="w-full py-12 text-center text-slate-500">No new arrivals yet.</div>
+            )}
           </div>
         </div>
       </div>
