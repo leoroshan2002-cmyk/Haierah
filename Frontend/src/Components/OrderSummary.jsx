@@ -10,7 +10,7 @@ import { useCart } from "../Context/CartContext";
 import { useAuth } from "../Context/AuthContext";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiClient } from "../services/api";
+import { apiClient, buildApiUrl } from "../services/api";
 import { toast } from "react-toastify";
 import { evaluateCoupon } from "../utils/couponUtils";
 import { PAYMENT_METHODS } from "./CheckoutDetails/PaymentMethod";
@@ -176,7 +176,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
 
         try {
             if (selectedPaymentMethod === PAYMENT_METHODS.cod.value) {
-                await apiClient.post("/api/orders", {
+                await apiClient.post(buildApiUrl("/api/orders"), {
                     orderId: orderPayload.orderId,
                     customerName: orderPayload.customerName,
                     customerEmail: orderPayload.customerEmail,
@@ -209,7 +209,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                 return;
             }
 
-            const { data: razorpayOrderData } = await apiClient.post("/api/payment/create-order", {
+            const { data: razorpayOrderData } = await apiClient.post(buildApiUrl("/api/payment/create-order"), {
                 amount: orderPayload.total,
                 receipt: orderPayload.orderId,
                 order: orderPayload,
@@ -226,7 +226,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                 order_id: razorpayOrderData.order.id,
                 handler: async (response) => {
                     try {
-                        const { data } = await apiClient.post("/api/payment/verify", {
+                        const { data } = await apiClient.post(buildApiUrl("/api/payment/verify"), {
                             razorpayOrderId: response.razorpay_order_id,
                             razorpayPaymentId: response.razorpay_payment_id,
                             razorpaySignature: response.razorpay_signature,
@@ -276,7 +276,19 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
             razorpayInstance.open();
         } catch (error) {
             const responseData = error?.response?.data;
-            console.error("Failed to place order", error, responseData);
+            const requestInfo = error?.config ? {
+                url: error.config.url,
+                method: error.config.method,
+                baseURL: error.config.baseURL,
+                headers: error.config.headers,
+            } : undefined;
+            console.error("Failed to place order", {
+                message: error?.message,
+                code: error?.code,
+                requestInfo,
+                responseData,
+                error,
+            });
             const message = responseData?.message || responseData?.error || error.message || "Unable to process payment.";
             onPaymentError?.(message);
             toast.error(message);
