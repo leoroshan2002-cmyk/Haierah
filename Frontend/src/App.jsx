@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -22,32 +22,26 @@ import OrderHistory from "./Components/AccountDetails/OrderHistory";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const AdminDashboard = lazy(() => import("./Pages/AdminDashboard"));
-const NewArrivals = lazy(() => import("./Components/NewArrivals"));
-const ProductsPage = lazy(() => import("./Pages/ProductsPage"));
-const ProductPage = lazy(() => import("./Pages/ProductPage"));
-const CategoryPage = lazy(() => import("./Pages/CategoryPage"));
-const CartPage = lazy(() => import("./Pages/CartPage"));
-const CheckoutPage = lazy(() => import("./Pages/CheckoutPage"));
-const NotFound = lazy(() => import("./Pages/NotFound"));
-const Login = lazy(() => import("./Pages/Login"));
-const Register = lazy(() => import("./Pages/Register"));
-const OrderSuccessPage = lazy(() => import("./Pages/OrderSuccessPage"));
-const BestSellers = lazy(() => import("./Components/footer/BestSellers"));
-const ShippingReturns = lazy(() => import("./Components/footer/ShippingReturns"));
-const PrivacyPolicy = lazy(() => import("./Components/footer/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./Components/footer/TermsOfService"));
-const Contact = lazy(() => import("./Components/footer/Contact"));
-const BrandStory = lazy(() => import("./Components/footer/BrandStory"));
-const Sustainability = lazy(() => import("./Components/footer/Sustainability"));
-const Press = lazy(() => import("./Components/footer/Press"));
-const StoreLocator = lazy(() => import("./Components/footer/StoreLocator"));
-
-const LazyRoute = ({ component: Component }) => (
-  <Suspense fallback={<div className="min-h-screen bg-[#f8f7f5]" /> }>
-    <Component />
-  </Suspense>
-);
+import AdminDashboard from "./Pages/AdminDashboard";
+import NewArrivals from "./Components/NewArrivals";
+import ProductsPage from "./Pages/ProductsPage";
+import ProductPage from "./Pages/ProductPage";
+import CategoryPage from "./Pages/CategoryPage";
+import CartPage from "./Pages/CartPage";
+import CheckoutPage from "./Pages/CheckoutPage";
+import NotFound from "./Pages/NotFound";
+import Login from "./Pages/Login";
+import Register from "./Pages/Register";
+import OrderSuccessPage from "./Pages/OrderSuccessPage";
+import BestSellers from "./Components/footer/BestSellers";
+import ShippingReturns from "./Components/footer/ShippingReturns";
+import PrivacyPolicy from "./Components/footer/PrivacyPolicy";
+import TermsOfService from "./Components/footer/TermsOfService";
+import Contact from "./Components/footer/Contact";
+import BrandStory from "./Components/footer/BrandStory";
+import Sustainability from "./Components/footer/Sustainability";
+import Press from "./Components/footer/Press";
+import StoreLocator from "./Components/footer/StoreLocator";
 
 const App = () => {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -83,8 +77,8 @@ const App = () => {
 
           <Routes>
             {/* PUBLIC ROUTES */}
-            <Route path="/login" element={<LazyRoute component={Login} />} />
-            <Route path="/register" element={<LazyRoute component={Register} />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
             {/* OPEN THE APP AT category */}
             <Route path="/" element={<Navigate to="/category/men" replace />} />
@@ -94,19 +88,19 @@ const App = () => {
             />
 
             <Route element={<Layout />}>
-              <Route path="/new-arrivals" element={<LazyRoute component={NewArrivals} />} />
-              <Route path="/best-sellers" element={<LazyRoute component={BestSellers} />} />
-              <Route path="/shipping-returns" element={<LazyRoute component={ShippingReturns} />} />
-              <Route path="/privacy-policy" element={<LazyRoute component={PrivacyPolicy} />} />
-              <Route path="/terms-of-service" element={<LazyRoute component={TermsOfService} />} />
-              <Route path="/contact" element={<LazyRoute component={Contact} />} />
-              <Route path="/brand-story" element={<LazyRoute component={BrandStory} />} />
-              <Route path="/sustainability" element={<LazyRoute component={Sustainability} />} />
-              <Route path="/press" element={<LazyRoute component={Press} />} />
-              <Route path="/store-locator" element={<LazyRoute component={StoreLocator} />} />
-              <Route path="/products" element={<LazyRoute component={ProductsPage} />} />
-              <Route path="/category/:slug" element={<LazyRoute component={CategoryPage} />} />
-              <Route path="/product/:id" element={<LazyRoute component={ProductPage} />} />
+              <Route path="/new-arrivals" element={<NewArrivals />} />
+              <Route path="/best-sellers" element={<BestSellers />} />
+              <Route path="/shipping-returns" element={<ShippingReturns />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/brand-story" element={<BrandStory />} />
+              <Route path="/sustainability" element={<Sustainability />} />
+              <Route path="/press" element={<Press />} />
+              <Route path="/store-locator" element={<StoreLocator />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/category/:slug" element={<CategoryPage />} />
+              <Route path="/product/:id" element={<ProductPage />} />
             </Route>
 
             {/* ADMIN ROUTE */}
@@ -115,7 +109,7 @@ const App = () => {
               element={
                 <ErrorBoundary>
                   <AdminProtectedRoute>
-                    <LazyRoute component={AdminDashboard} />
+                    <AdminDashboard />
                   </AdminProtectedRoute>
                 </ErrorBoundary>
               }
@@ -123,7 +117,7 @@ const App = () => {
 
             {/* USER ROUTES */}
             <Route element={<Layout />}>
-              <Route path="/checkout" element={<LazyRoute component={CheckoutPage} />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
             </Route>
 
             <Route
@@ -135,15 +129,15 @@ const App = () => {
                 </ErrorBoundary>
               }
             >
-              <Route path="/cart" element={<LazyRoute component={CartPage} />} />
-              <Route path="/order-success" element={<LazyRoute component={OrderSuccessPage} />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/order-success" element={<OrderSuccessPage />} />
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/account" element={<Account />} />
               <Route path="/orders" element={<OrderHistory />} />
             </Route>
 
             {/* NOT FOUND */}
-            <Route path="*" element={<LazyRoute component={NotFound} />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
       </div>
