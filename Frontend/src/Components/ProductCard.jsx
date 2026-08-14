@@ -4,7 +4,7 @@ import { Heart, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWishlist } from "../Context/WhislistContext";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
-import { normalizeImageList } from "../utils/productImages";
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl, normalizeImageList } from "../utils/productImages";
 
 const ProductCard = ({
     product,
@@ -23,8 +23,8 @@ const ProductCard = ({
     const [selectedColor, setSelectedColor] = useState(colors[0] || "");
     const [selectedSize, setSelectedSize] = useState(sizes[0] || "");
     const sanitizedImages = normalizeImageList(product.images || [product.image]);
-    const primaryImage = sanitizedImages[0] || product.image || "";
-    const secondaryImage = sanitizedImages[1] || "";
+    const primaryImage = getSafeImageUrl(sanitizedImages[0] || product.image, DEFAULT_IMAGE_FALLBACK);
+    const secondaryImage = getSafeImageUrl(sanitizedImages[1] || '', '');
 
     return (
         <motion.div
@@ -40,18 +40,23 @@ const ProductCard = ({
     <img
         src={primaryImage}
         alt={product.name}
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-            secondaryImage ? "group-hover:opacity-0" : ""
-        }`}
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${secondaryImage ? "group-hover:opacity-0" : ""}`}
+        onError={(e) => {
+          e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+        }}
     />
 
     {/* Hover Image */}
     {secondaryImage && (
-        <img
-            src={secondaryImage}
-            alt={product.name}
-            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        />
+      <img
+          src={secondaryImage}
+          alt={`${product.name} - Alternate view`}
+          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          loading="lazy"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+      />
     )}
 </div>
             </Link>

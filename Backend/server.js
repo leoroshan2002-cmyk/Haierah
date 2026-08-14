@@ -30,7 +30,7 @@ app.use(
   }),
 );
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // Handle malformed JSON payloads (body-parser syntax errors)
 app.use((err, _req, res, next) => {

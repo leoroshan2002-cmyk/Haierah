@@ -34,7 +34,10 @@ export const buildApiUrl = (path) => {
   if (path.startsWith(apiBaseUrl)) return path;
   return `${apiBaseUrl.replace(/\/$/, '')}${path}`;
 };
-export const apiClient = axios.create({ baseURL: apiBaseUrl || undefined });
+export const apiClient = axios.create({ 
+  baseURL: apiBaseUrl || undefined,
+  withCredentials: true,
+});
 export const resolveBackendImageUrl = (image) => {
   if (!image || typeof image !== 'string') return '';
 
@@ -153,6 +156,12 @@ export const normalizeCampaign = (campaign, category = 'women') => {
   return {
     ...baseCampaign,
     category: safeCategory,
+    slug: campaign.slug || safeCategory,
+    name: campaign.name || safeCategory,
+    image: campaign.image || '',
+    description: campaign.description || '',
+    status: campaign.status || 'Active',
+    categoryId: campaign.categoryId || null,
     slider: normalizeCollection(campaign.slider, baseCampaign.slider, safeCategory),
     promoCards,
     bottomPromoCards,

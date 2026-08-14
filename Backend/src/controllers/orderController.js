@@ -86,8 +86,7 @@ const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const validateOrderPayload = (payload = {}) => {
   const errors = [];
   const customerName = String(payload.customerName || payload.customer?.name || payload.customer?.fullName || 'Customer').trim();
-  const customerEmailInput = String(payload.customerEmail || payload.customer?.email || '').trim().toLowerCase();
-  const customerEmail = customerEmailInput || `customer-${Date.now()}@example.com`;
+  const customerEmail = String(payload.customerEmail || payload.customer?.email || '').trim().toLowerCase();
   const items = Array.isArray(payload.items) ? payload.items : [];
   const total = Number(payload.total ?? 0);
   const status = String(payload.status || 'Pending').trim();
@@ -98,10 +97,10 @@ const validateOrderPayload = (payload = {}) => {
     errors.push('customerName is required');
   }
 
-  if (payload.customerEmail || payload.customer?.email) {
-    if (!isValidEmail(customerEmail)) {
-      errors.push('customerEmail must be a valid email address');
-    }
+  if (!customerEmail) {
+    errors.push('customerEmail is required');
+  } else if (!isValidEmail(customerEmail)) {
+    errors.push('customerEmail must be a valid email address');
   }
 
   if (!Array.isArray(payload.items) || items.length === 0) {

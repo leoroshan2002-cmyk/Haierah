@@ -65,6 +65,20 @@ export default function AddressSection() {
       return;
     }
 
+    // Validate all fields are filled
+    const emptyFields = [];
+    if (!formData.name.trim()) emptyFields.push("Full Name");
+    if (!formData.address.trim()) emptyFields.push("Address");
+    if (!formData.city.trim()) emptyFields.push("City");
+    if (!formData.state.trim()) emptyFields.push("State");
+    if (!formData.zip.trim()) emptyFields.push("ZIP/Postal Code");
+    if (!formData.phone.trim()) emptyFields.push("Phone");
+
+    if (emptyFields.length > 0) {
+      setErrorMessage(`Please fill in all fields: ${emptyFields.join(", ")}`);
+      return;
+    }
+
     setSavingAddress(true);
     setErrorMessage("");
     setSuccessMessage("");
@@ -75,6 +89,7 @@ export default function AddressSection() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           name: formData.name.trim(),
           address: formData.address.trim(),
@@ -125,16 +140,22 @@ export default function AddressSection() {
 
           <CheckCircle2
             size={26}
-            className="text-green-600 fill-green-600 text-white"
+            className="text-green-600 fill-current text-white"
+            aria-hidden="true"
           />
 
         </div>
 
-        <button onClick={() => setShow(!show)}>
+        <button 
+          onClick={() => setShow(!show)}
+          aria-label={show ? "Hide address details" : "Show address details"}
+          aria-expanded={show}
+        >
           <ChevronDown
             className={`cursor-pointer transition-transform duration-300 ${
               show ? "rotate-180" : ""
             }`}
+            aria-hidden="true"
           />
         </button>
 
@@ -180,9 +201,10 @@ export default function AddressSection() {
               <button
                 type="button"
                 onClick={openAddressForm}
+                aria-label="Edit or add address"
                 className="flex items-center gap-2 text-[#0d2746] hover:text-black transition"
               >
-                <Pencil size={16} />
+                <Pencil size={16} aria-hidden="true" />
                 {user?.address || user?.city || user?.state || user?.zip || user?.phone ? "Edit" : "Add"}
               </button>
 
@@ -198,77 +220,101 @@ export default function AddressSection() {
               {successMessage && <p className="mb-3 text-sm text-green-600">{successMessage}</p>}
 
               <div className="grid gap-4 md:grid-cols-2">
-                <label className="text-sm text-gray-700">
-                  Full Name
+                <div>
+                  <label htmlFor="name" className="text-sm text-gray-700">
+                    Full Name
+                  </label>
                   <input
+                    id="name"
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
                     placeholder="Enter full name"
+                    autoComplete="name"
                   />
-                </label>
+                </div>
 
-                <label className="text-sm text-gray-700">
-                  Phone
+                <div>
+                  <label htmlFor="phone" className="text-sm text-gray-700">
+                    Phone
+                  </label>
                   <input
+                    id="phone"
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
                     placeholder="Enter phone number"
+                    autoComplete="tel"
                   />
-                </label>
+                </div>
 
-                <label className="text-sm text-gray-700 md:col-span-2">
-                  Address
+                <div className="md:col-span-2">
+                  <label htmlFor="address" className="text-sm text-gray-700">
+                    Address
+                  </label>
                   <input
+                    id="address"
                     type="text"
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
                     placeholder="House number, street name"
+                    autoComplete="street-address"
                   />
-                </label>
+                </div>
 
-                <label className="text-sm text-gray-700">
-                  City
+                <div>
+                  <label htmlFor="city" className="text-sm text-gray-700">
+                    City
+                  </label>
                   <input
+                    id="city"
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
                     placeholder="City"
+                    autoComplete="address-level2"
                   />
-                </label>
+                </div>
 
-                <label className="text-sm text-gray-700">
-                  State
+                <div>
+                  <label htmlFor="state" className="text-sm text-gray-700">
+                    State
+                  </label>
                   <input
+                    id="state"
                     type="text"
                     name="state"
                     value={formData.state}
                     onChange={handleInputChange}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
                     placeholder="State"
+                    autoComplete="address-level1"
                   />
-                </label>
+                </div>
 
-                <label className="text-sm text-gray-700">
-                  ZIP / Postal Code
+                <div>
+                  <label htmlFor="zip" className="text-sm text-gray-700">
+                    ZIP / Postal Code
+                  </label>
                   <input
+                    id="zip"
                     type="text"
                     name="zip"
                     value={formData.zip}
                     onChange={handleInputChange}
                     className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
                     placeholder="Postal code"
+                    autoComplete="postal-code"
                   />
-                </label>
+                </div>
               </div>
 
               <div className="mt-5 flex justify-end gap-3">
@@ -296,9 +342,10 @@ export default function AddressSection() {
             <button
               type="button"
               onClick={openAddressForm}
+              aria-label="Add new address"
               className="mt-6 w-full flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 rounded-xl py-4 hover:border-[#0d2746] hover:text-[#0d2746] transition"
             >
-              <Plus size={18} />
+              <Plus size={18} aria-hidden="true" />
               Add New Address
             </button>
           )}

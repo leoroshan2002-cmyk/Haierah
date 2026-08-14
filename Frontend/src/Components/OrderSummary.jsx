@@ -102,12 +102,16 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
             .filter(Boolean)
             .join(" ")
             .trim() || "Customer";
-        const customerEmail = String(user?.email || "").trim().toLowerCase() || "customer@example.com";
+        const customerEmail = String(user?.email || "").trim().toLowerCase();
         const customerPhone = String(user?.phone || "").trim() || "Not provided";
         const customerAddress = [user?.address, user?.city, user?.state, user?.zip]
             .filter(Boolean)
             .join(", ")
             .trim() || "Address not provided";
+
+        if (!customerEmail) {
+            throw new Error("Please sign in to place an order with your email address.");
+        }
 
         return {
             id: `HM${Date.now().toString().slice(-6)}`,
@@ -175,7 +179,14 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
     const handlePlaceOrder = async () => {
         if (cart.length === 0) return;
 
-        const orderPayload = await createOrderPayload();
+        let orderPayload;
+
+        try {
+            orderPayload = await createOrderPayload();
+        } catch (error) {
+            toast.error(error.message || "Please sign in to place your order.");
+            return;
+        }
 
         try {
             setIsProcessing(true);
@@ -202,6 +213,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
 
                 if (typeof window !== "undefined") {
                     window.dispatchEvent(new Event("haierah-order-created"));
+                    window.dispatchEvent(new Event("haierah-products-updated"));
                 }
 
                 clearCart();
@@ -248,6 +260,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                             localStorage.setItem("userOrders", JSON.stringify([{ ...orderPayload, paymentStatus: "Paid", paymentMethod: "Razorpay", payment: { ...orderPayload.payment, method: "Razorpay", status: "Paid", transaction: response.razorpay_payment_id }, razorpayOrderId: response.razorpay_order_id, razorpayPaymentId: response.razorpay_payment_id, razorpaySignature: response.razorpay_signature, transactionId: response.razorpay_payment_id }, ...existingOrders]));
                             if (typeof window !== "undefined") {
                                 window.dispatchEvent(new Event("haierah-order-created"));
+                                window.dispatchEvent(new Event("haierah-products-updated"));
                             }
                             clearCart();
                             setIsProcessing(false);

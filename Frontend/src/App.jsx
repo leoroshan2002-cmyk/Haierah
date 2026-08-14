@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState } from "react";
+import React, { lazy, Suspense, useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -51,6 +51,20 @@ const LazyRoute = ({ component: Component }) => (
 
 const App = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Suppress React DevTools console message
+    const originalInfo = console.info;
+    console.info = (...args) => {
+      if (typeof args[0] === 'string' && args[0].includes('Download the React DevTools')) {
+        return;
+      }
+      originalInfo(...args);
+    };
+    return () => {
+      console.info = originalInfo;
+    };
+  }, []);
 
   return (
     <>

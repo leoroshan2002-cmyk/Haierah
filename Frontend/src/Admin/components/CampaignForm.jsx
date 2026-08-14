@@ -1,4 +1,5 @@
 import React from "react";
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../../utils/productImages";
 
 const CampaignForm = ({ slide, index, updateSlide }) => {
   return (
@@ -18,8 +19,14 @@ const CampaignForm = ({ slide, index, updateSlide }) => {
     
 
       {slide.image && (
-        <img src={slide.image} alt="" className="mt-3 h-48 w-full rounded object-cover" />
-        
+        <img
+          src={getSafeImageUrl(slide.image, DEFAULT_IMAGE_FALLBACK)}
+          alt=""
+          className="mt-3 h-48 w-full rounded object-cover"
+          onError={(e) => {
+            e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+          }}
+        />
       )}
 
       {/* <input

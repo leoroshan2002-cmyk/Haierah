@@ -38,6 +38,7 @@ export default function Contact() {
       const response = await fetch(buildApiUrl("/api/contact"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ name, email, message }),
       });
 

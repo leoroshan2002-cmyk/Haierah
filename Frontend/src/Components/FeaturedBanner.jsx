@@ -5,7 +5,7 @@ export default function FeaturedBanner() {
         <img
           src="https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=2000"
           className="w-full h-full object-cover"
-          alt=""
+          alt="The Denim Edit Featured Collection"
         />
 
         <div className="absolute inset-0 bg-black/40" />

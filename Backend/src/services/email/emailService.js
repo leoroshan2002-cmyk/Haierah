@@ -13,9 +13,12 @@ class EmailService {
 
   async sendOrderStatusEmail(order, subjectOverride) {
     if (!order) throw new Error('Order object is required');
+    const to = String(order.customerEmail || '').trim().toLowerCase();
+    if (!to || to === 'customer@example.com') {
+      throw new Error('Order customer email is required before sending email');
+    }
     const html = renderOrderStatusEmail(order);
     const subject = subjectOverride || `Order ${order.orderId} - ${order.status}`;
-    const to = String(order.customerEmail || '').trim().toLowerCase();
     const from = process.env.EMAIL_FROM || `no-reply@${process.env.APP_DOMAIN || 'example.com'}`;
     return this.sendMail({ to, subject, html, from });
   }

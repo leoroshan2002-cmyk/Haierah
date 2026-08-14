@@ -343,6 +343,10 @@ export default function ProductPage() {
 
             <button
               onClick={() => {
+                if ((product.stock ?? 0) <= 0) {
+                  alert("This item is out of stock.");
+                  return;
+                }
 
                 if (!selectedSize) {
                   return alert("Select a size");
@@ -365,9 +369,10 @@ export default function ProductPage() {
 
                 addToCart(cartProduct);
               }}
-              className="flex-1 bg-[#0d2746] text-white rounded-full py-4"
+              disabled={(product.stock ?? 0) <= 0}
+              className={`flex-1 rounded-full py-4 ${ (product.stock ?? 0) <= 0 ? "bg-gray-300 text-gray-600 cursor-not-allowed" : "bg-[#0d2746] text-white" }`}
             >
-              Add To Cart
+              {(product.stock ?? 0) <= 0 ? "Out of Stock" : "Add To Cart"}
             </button>
 
             <button

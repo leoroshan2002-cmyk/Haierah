@@ -106,6 +106,7 @@ export default function Register() {
     const response = await fetch(buildApiUrl('/api/auth/email/verify/confirm'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, code: verificationCode.trim() }),
     });
 
@@ -123,6 +124,7 @@ export default function Register() {
     const response = await fetch(buildApiUrl('/api/auth/email/verify/request'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email }),
     });
 

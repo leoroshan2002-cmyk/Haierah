@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../../utils/productImages";
 
 export default function ProductGallery({ images }) {
   const [selectedImage, setSelectedImage] = useState(images[0]);
@@ -21,9 +22,12 @@ export default function ProductGallery({ images }) {
             }`}
           >
             <img
-              src={img}
+              src={getSafeImageUrl(img, DEFAULT_IMAGE_FALLBACK)}
               alt=""
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+              }}
             />
           </motion.button>
         ))}
@@ -38,9 +42,12 @@ export default function ProductGallery({ images }) {
         className="flex-1 rounded-3xl overflow-hidden bg-[#f7f7f7]"
       >
         <img
-          src={selectedImage}
+          src={getSafeImageUrl(selectedImage, DEFAULT_IMAGE_FALLBACK)}
           alt=""
           className="w-full h-[650px] object-cover hover:scale-110 transition duration-500 cursor-zoom-in"
+          onError={(e) => {
+            e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+          }}
         />
       </motion.div>
     </div>

@@ -4,6 +4,7 @@ import React, { useEffect, useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import gsap from "gsap";
+import { toast } from "react-toastify";
 import { useCart } from "../Context/CartContext";
 import menCollection from "../assets/menCollection.jpg";
 import womenCollection from "../assets/womenCollection.jpg";
@@ -146,8 +147,13 @@ export default function HomePage({ isLoaded }) {
             name: product.name,
             price: product.discountPrice || product.price,
             image: product.images?.[0] || product.image,
+            stock: product.stock ?? 0,
         };
         if (!requireAuthAction("addToCart", cartProduct)) return;
+        if ((product.stock ?? 0) <= 0) {
+            toast.warning("This item is out of stock.");
+            return;
+        }
         addToCart(cartProduct);
     };
     const featuredProducts = products.slice(0, 4);
@@ -351,7 +357,6 @@ export default function HomePage({ isLoaded }) {
                                 <img
                                     src={item.images?.[0] || item.image}
                                     alt={item.name}
-                                    loading="lazy"
                                     className="h-80 w-full object-cover group-hover:scale-110 transition duration-500 ease-out"
                                 />
                             </Link>

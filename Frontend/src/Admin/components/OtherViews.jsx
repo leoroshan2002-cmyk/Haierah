@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Trash2, Plus, Store, ToggleLeft, ToggleRight, TrendingUp } from 'lucide-react';
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from '../../utils/productImages';
 
 /* ==========================================
    1. CATEGORIES MANAGEMENT VIEW
@@ -142,9 +143,8 @@ export const CategoriesView = ({
             <div id='cat-card' key={`${cat.id || 'category'}-${index}`} className="bg-white dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between group hover:shadow-xl hover:scale-105 transition-transform duration-300 transform">
               <div className="relative aspect-video w-full bg-slate-100 overflow-hidden">
                 <img
-                  src={cat.image || 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&auto=format&fit=crop&q=60'}
-                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&auto=format&fit=crop&q=60'; }}
-                  loading="lazy"
+                  src={getSafeImageUrl(cat.image, DEFAULT_IMAGE_FALLBACK)}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = DEFAULT_IMAGE_FALLBACK; }}
                   decoding="async"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-300"
                   alt={cat.name || 'Category banner'}
@@ -284,7 +284,7 @@ export const CategoriesView = ({
                 {imageFile ? (
                   <p className="text-[9px] text-slate-500">Selected file: {imageFile.name}</p>
                 ) : image ? (
-                  <img src={image} alt="Current banner" className="w-full h-32 object-cover rounded-lg mt-2" />
+                  <img src={getSafeImageUrl(image, DEFAULT_IMAGE_FALLBACK)} alt="Current banner" className="w-full h-32 object-cover rounded-lg mt-2" onError={(e) => { e.currentTarget.src = DEFAULT_IMAGE_FALLBACK; }} />
                 ) : null}
                 <p className="text-[9px] text-slate-500">Upload a banner image file for this category. Existing banner remains if you do not select a new file.</p>
               </div>

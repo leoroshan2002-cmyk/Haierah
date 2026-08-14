@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getCampaign } from "../services/api";
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../utils/productImages";
 
 export default function CampaignSlider({ category }) {
   const [slides, setSlides] = useState([]);
@@ -53,7 +54,14 @@ export default function CampaignSlider({ category }) {
             index === current ? "opacity-100 z-10" : "opacity-0"
           }`}
         >
-          <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+          <img
+            src={getSafeImageUrl(slide.image, DEFAULT_IMAGE_FALLBACK)}
+            alt={slide.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+            }}
+          />
 
           <div className="absolute inset-0 bg-black/25"></div>
 

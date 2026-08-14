@@ -52,6 +52,7 @@ export default function SecuritySection() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include',
         body: JSON.stringify({
           password: passwordForm.newPassword,
         }),

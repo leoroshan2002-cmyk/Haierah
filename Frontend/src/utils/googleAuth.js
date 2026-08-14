@@ -135,6 +135,13 @@ export const triggerGoogleLogin = async ({ clientId, onSuccess, onError }) => {
 export const renderGoogleButton = ({ clientId, container, onSuccess, onError }) => {
   if (!container) return;
 
+  const isLocalDevelopmentHost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  if (isLocalDevelopmentHost) {
+    container.innerHTML = '';
+    return;
+  }
+
   if (!hasValidGoogleClientId(clientId)) {
     container.innerHTML = '';
     onError?.('Google sign-in is not configured. Add a valid VITE_GOOGLE_CLIENT_ID from Google Cloud Console and allow this origin in the OAuth client settings.');

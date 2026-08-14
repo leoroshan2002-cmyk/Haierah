@@ -1,4 +1,5 @@
 import React from "react";
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../../utils/productImages";
 
 const PromoCardForm = ({ card, index, updateCard }) => {
   return (
@@ -18,7 +19,14 @@ const PromoCardForm = ({ card, index, updateCard }) => {
       />
 
       {card.image && (
-        <img src={card.image} alt="" className="mt-3 h-40 w-full object-cover rounded" />
+        <img
+          src={getSafeImageUrl(card.image, DEFAULT_IMAGE_FALLBACK)}
+          alt=""
+          className="mt-3 h-40 w-full object-cover rounded"
+          onError={(e) => {
+            e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+          }}
+        />
       )}
 
       {/* <input

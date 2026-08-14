@@ -46,6 +46,33 @@ const campaignSchema = new mongoose.Schema(
       trim: true,
       unique: true,
     },
+    slug: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    name: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    image: {
+      type: String,
+      default: '',
+    },
+    description: {
+      type: String,
+      default: '',
+    },
+    status: {
+      type: String,
+      default: 'Active',
+    },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null,
+    },
     slider: {
       type: [campaignItemSchema],
       default: [],

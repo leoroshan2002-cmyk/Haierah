@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { fetchCategories } from "../services/api";
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../utils/productImages";
 
 const defaultMenuData = {
     MEN: [
@@ -304,7 +305,10 @@ const CategoriesSidebar = ({ open, setOpen, activeMenu }) => {
                         <div className="flex-1 h-full p-8 flex items-center justify-center">
                             <motion.img
                                 key={activeImage}
-                                src={activeImage}
+                                src={getSafeImageUrl(activeImage, DEFAULT_IMAGE_FALLBACK)}
+                                onError={(event) => {
+                                    event.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+                                }}
                                 initial={{ opacity: 0, scale: 1.05 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.4 }}

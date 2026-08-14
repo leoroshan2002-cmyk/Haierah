@@ -1,4 +1,5 @@
 import Campaign from '../models/Campaign.js';
+import Category from '../models/Category.js';
 
 const toCampaignResponse = (campaign) => {
   const doc = campaign.toObject({ getters: true, virtuals: false });
@@ -6,6 +7,50 @@ const toCampaignResponse = (campaign) => {
   delete doc._id;
   delete doc.__v;
   return doc;
+};
+
+const normalizeCategoryLookup = (value) => {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value.trim().toLowerCase();
+};
+
+const syncCategoryMetadata = async (categoryKey, payload) => {
+  if (!categoryKey) {
+    return null;
+  }
+
+  const normalizedCategory = normalizeCategoryLookup(categoryKey);
+  const lookup = normalizedCategory
+    ? { $or: [{ slug: normalizedCategory }, { slug: categoryKey }, { name: { $regex: new RegExp(`^${categoryKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }] }
+    : { name: '' };
+
+  const categoryDoc = await Category.findOne(lookup);
+
+  if (!categoryDoc) {
+    return null;
+  }
+
+  const updatedCategory = {
+    slug: categoryDoc.slug || normalizedCategory || categoryDoc.name,
+    name: categoryDoc.name || payload.name || categoryKey,
+    image: categoryDoc.image || payload.image || '',
+    description: categoryDoc.description || payload.description || '',
+    status: categoryDoc.status || 'Active',
+  };
+
+  const safeCategoryDoc = await Category.findByIdAndUpdate(
+    categoryDoc._id,
+    {
+      ...updatedCategory,
+      slug: updatedCategory.slug.toLowerCase(),
+    },
+    { new: true, runValidators: true }
+  );
+
+  return safeCategoryDoc;
 };
 
 export const getCampaignByCategory = async (req, res) => {
@@ -32,8 +77,20 @@ export const saveCampaign = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Category is required' });
     }
 
+    const categoryMetadata = await syncCategoryMetadata(category, {
+      name: req.body.name || req.body.category || category,
+      image: req.body.image || '',
+      description: req.body.description || '',
+    });
+
     const payload = {
       category,
+      slug: category,
+      name: categoryMetadata?.name || req.body.name || req.body.category || category,
+      image: categoryMetadata?.image || req.body.image || '',
+      description: categoryMetadata?.description || req.body.description || '',
+      status: categoryMetadata?.status || 'Active',
+      categoryId: categoryMetadata?._id || null,
       slider: Array.isArray(req.body.slider) ? req.body.slider : [],
       promoCards: Array.isArray(req.body.promoCards) ? req.body.promoCards : [],
       bottomPromoCards: Array.isArray(req.body.bottomPromoCards) ? req.body.bottomPromoCards : [],

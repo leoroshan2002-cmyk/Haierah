@@ -238,40 +238,55 @@ export const ProductsView = ({
   // EXTRACT DOMINANT COLOR FROM IMAGE
   const extractColorFromImage = (imageUrl) => {
     return new Promise((resolve) => {
+      if (!imageUrl || typeof imageUrl !== 'string') {
+        resolve('#808080');
+        return;
+      }
+
+      const isRemoteImage = /^https?:\/\//i.test(imageUrl) || imageUrl.startsWith('data:');
+      if (isRemoteImage) {
+        resolve('#808080');
+        return;
+      }
+
       const img = new Image();
-      img.crossOrigin = 'Anonymous';
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        const colors = {};
-        
-        // Sample every 4th pixel for performance
-        for (let i = 0; i < data.length; i += 16) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const a = data[i + 3];
-          
-          // Skip transparent pixels
-          if (a < 200) continue;
-          
-          // Skip grayscale-like colors (white, black, gray backgrounds)
-          const isGrayscale = Math.abs(r - g) < 30 && Math.abs(g - b) < 30 && Math.abs(r - b) < 30;
-          if (isGrayscale) continue;
-          
-          const hexColor = `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase()}`;
-          colors[hexColor] = (colors[hexColor] || 0) + 1;
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve('#808080');
+            return;
+          }
+
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          const colors = {};
+
+          for (let i = 0; i < data.length; i += 16) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const a = data[i + 3];
+
+            if (a < 200) continue;
+
+            const isGrayscale = Math.abs(r - g) < 30 && Math.abs(g - b) < 30 && Math.abs(r - b) < 30;
+            if (isGrayscale) continue;
+
+            const hexColor = `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase()}`;
+            colors[hexColor] = (colors[hexColor] || 0) + 1;
+          }
+
+          const dominantColor = Object.keys(colors).reduce((a, b) => colors[a] > colors[b] ? a : b, '#808080');
+          resolve(dominantColor);
+        } catch {
+          resolve('#808080');
         }
-        
-        // Find most common color
-        const dominantColor = Object.keys(colors).reduce((a, b) => colors[a] > colors[b] ? a : b, '#808080');
-        resolve(dominantColor);
       };
       img.onerror = () => resolve('#808080');
       img.src = imageUrl;

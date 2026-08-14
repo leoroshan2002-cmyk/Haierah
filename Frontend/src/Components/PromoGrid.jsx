@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCampaign } from "../services/api";
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../utils/productImages";
 
 export default function PromoGrid({ category, variant = "top" }) {
   const [promos, setPromos] = useState([]);
@@ -33,9 +34,12 @@ export default function PromoGrid({ category, variant = "top" }) {
       {promos.map((item, index) => (
         <div key={item.id || index} className="relative h-[550px] overflow-hidden group rounded-[2rem]">
           <img
-            src={item.image}
+            src={getSafeImageUrl(item.image, DEFAULT_IMAGE_FALLBACK)}
             alt={item.title}
             className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+            onError={(e) => {
+              e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+            }}
           />
 
           <div className="absolute inset-0 bg-black/25"></div>

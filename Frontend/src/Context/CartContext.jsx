@@ -3,6 +3,36 @@ import { toast } from "react-toastify";
 
 const CartContext = createContext();
 
+const normalizeCartProduct = (product, quantity = 1) => {
+  const productId = product?.productId || product?.id || product?._id || product?.sku || "";
+  const normalizedPrice = Number(product?.discountPrice ?? product?.salePrice ?? product?.price ?? 0) || 0;
+  const normalizedImage =
+    typeof product?.image === "string" && product.image.trim()
+      ? product.image.trim()
+      : Array.isArray(product?.images) && typeof product.images[0] === "string"
+        ? product.images[0].trim()
+        : "";
+
+  return {
+    id: product?.id || product?._id || product?.sku || productId,
+    productId,
+    name: product?.name || "Product",
+    price: normalizedPrice,
+    image: normalizedImage,
+    images: Array.isArray(product?.images) ? product.images.slice(0, 4) : [],
+    qty: Number(quantity) > 0 ? Number(quantity) : 1,
+    selectedColor: product?.selectedColor || product?.color || "",
+    selectedSize: product?.selectedSize || product?.size || "",
+    color: product?.selectedColor || product?.color || "",
+    size: product?.selectedSize || product?.size || "",
+    category: product?.category || "",
+    brand: product?.brand || "",
+    material: product?.material || "",
+    sku: product?.sku || "",
+    stock: Number(product?.stock ?? 0),
+  };
+};
+
 const getInitialCart = () => {
   if (typeof window === "undefined") return [];
   try {
@@ -33,7 +63,18 @@ export function CartProvider({ children }) {
   };
 
   const addToCart = (product) => {
-    const cartItemKey = getCartItemKey(product);
+    const normalizedProduct = normalizeCartProduct(product);
+    const stockCount = Number(normalizedProduct.stock ?? 0);
+
+    if (stockCount <= 0) {
+      toast.warning("This item is out of stock.", {
+        toastId: `cart-out-of-stock-${normalizedProduct.id || Date.now()}`,
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    const cartItemKey = getCartItemKey(normalizedProduct);
 
     setCart((prevCart) => {
       const existingItemIndex = prevCart.findIndex((item) => {
@@ -42,25 +83,37 @@ export function CartProvider({ children }) {
       });
 
       if (existingItemIndex >= 0) {
+        const existingItem = prevCart[existingItemIndex];
+        const existingQty = Number(existingItem.qty || 0);
+        const nextQty = existingQty + 1;
+
+        if (stockCount > 0 && nextQty > stockCount) {
+          toast.warning(`Only ${stockCount} item${stockCount === 1 ? "" : "s"} left in stock.`, {
+            toastId: `cart-stock-limit-${normalizedProduct.id || Date.now()}`,
+            autoClose: 2000,
+          });
+          return prevCart;
+        }
+
         return prevCart.map((item, index) =>
           index === existingItemIndex
             ? {
                 ...item,
-                ...product,
-                selectedSize: product.selectedSize || item.selectedSize,
-                selectedColor: product.selectedColor || item.selectedColor,
-                qty: item.qty + 1,
+                ...normalizedProduct,
+                selectedSize: normalizedProduct.selectedSize || item.selectedSize,
+                selectedColor: normalizedProduct.selectedColor || item.selectedColor,
+                qty: nextQty,
                 cartItemKey,
               }
             : item
         );
       }
 
-      return [...prevCart, { ...product, qty: 1, cartItemKey }];
+      return [...prevCart, { ...normalizedProduct, qty: 1, cartItemKey }];
     });
 
     toast.success("Item added to cart 🛒", {
-      toastId: `cart-add-${product?.id || Date.now()}`,
+      toastId: `cart-add-${normalizedProduct.id || Date.now()}`,
       autoClose: 1500,
     });
   };

@@ -124,13 +124,16 @@ export const normalizeCourierValue = (payload = {}) => {
 
 const createOrderFromPayload = async (payload = {}) => {
   const customerName = String(payload.customerName || payload.customer?.name || payload.customer?.fullName || 'Customer').trim() || 'Customer';
-  const customerEmailInput = String(payload.customerEmail || payload.customer?.email || '').trim().toLowerCase();
-  const customerEmail = customerEmailInput || `customer-${Date.now()}@example.com`;
+  const customerEmail = String(payload.customerEmail || payload.customer?.email || '').trim().toLowerCase();
   const items = Array.isArray(payload.items) ? payload.items : [];
   const total = Number(payload.total ?? 0);
   const status = String(payload.status || 'Processing').trim();
   const paymentStatus = String(payload.paymentStatus || 'Pending').trim();
   const estimatedDeliveryValue = payload.estimatedDelivery ? new Date(payload.estimatedDelivery) : null;
+
+  if (!customerEmail) {
+    throw new Error('customerEmail is required');
+  }
 
   const buildUniqueOrderId = async (baseOrderId) => {
     const fallbackBase = `ORD-${Date.now()}`;

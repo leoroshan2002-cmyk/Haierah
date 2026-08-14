@@ -149,6 +149,7 @@ export const AuthProvider = ({ children }) => {
       const response = await fetch(buildApiUrl('/api/auth/email/verify/request'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email }),
       });
       const data = await response.json();
@@ -166,6 +167,7 @@ export const AuthProvider = ({ children }) => {
       const response = await fetch(buildApiUrl('/api/auth/email/verify/confirm'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, code }),
       });
       const data = await response.json();

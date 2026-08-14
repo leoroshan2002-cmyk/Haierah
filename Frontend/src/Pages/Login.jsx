@@ -24,7 +24,8 @@ export default function Login() {
 
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    if (!clientId || !googleButtonRef.current) return;
+    const hostIsLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (!clientId || hostIsLocal || !googleButtonRef.current) return;
 
     renderGoogleButton({
       clientId,
@@ -33,6 +34,7 @@ export default function Login() {
         const result = await fetch(buildApiUrl('/api/auth/google'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ credential, createIfMissing: false }),
         });
 

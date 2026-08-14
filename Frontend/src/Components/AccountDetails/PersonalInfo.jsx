@@ -59,7 +59,7 @@ export default function PersonalInfo() {
 
       if (user?.id) {
         try {
-          const response = await fetch(buildApiUrl(`/api/users/${user.id}`));
+          const response = await fetch(buildApiUrl(`/api/users/${user.id}`), { credentials: 'include' });
           const data = await response.json();
 
           if (response.ok && data.customer) {

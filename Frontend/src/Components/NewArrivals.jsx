@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { fetchProducts } from "../services/api";
-import { normalizeImageList } from "../utils/productImages";
+import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl, normalizeImageList } from "../utils/productImages";
 import { Link } from "react-router-dom";
 import BackButton from "../Components/BackButton";
 
@@ -101,7 +101,7 @@ export default function NewArrivals() {
             {products.length > 0 ? (
               products.map((product) => {
                 const images = normalizeImageList(product.images || [product.image]);
-                const image = images[0] || product.image || "";
+                const image = getSafeImageUrl(images[0] || product.image, DEFAULT_IMAGE_FALLBACK);
                 const priceValue = product.discountPrice || product.price || 0;
 
                 return (
@@ -115,6 +115,9 @@ export default function NewArrivals() {
                         src={image}
                         alt={product.name}
                         className="w-full h-[380px] object-cover transition duration-700 group-hover:scale-105"
+                        onError={(e) => {
+                          e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+                        }}
                       />
                     </div>
 
