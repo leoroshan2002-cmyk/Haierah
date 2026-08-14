@@ -35,17 +35,6 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      const hasSessionCookie = document.cookie
-        .split("; ")
-        .some((cookie) => cookie.startsWith("token="));
-
-      if (!hasSessionCookie) {
-        setUser(null);
-        localStorage.removeItem("user");
-        setIsAuthReady(true);
-        return;
-      }
-
       try {
         const response = await fetch(buildApiUrl("/api/auth/me"), {
           method: "GET",

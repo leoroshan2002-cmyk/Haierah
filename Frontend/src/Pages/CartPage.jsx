@@ -10,7 +10,7 @@ import PageBack from "../Components/CommonDetails/PageBack";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, getTotalPrice } = useCart();
-  const { user } = useAuth();
+  const { user, isAuthReady } = useAuth();
   const navigate = useNavigate();
   const cartLeftRef = useRef(null);
   const cartRightRef = useRef(null);
@@ -51,6 +51,7 @@ export default function CartPage() {
 
   const handleProceedToCheckout = () => {
     if (cart.length === 0) return;
+    if (!isAuthReady) return;
 
     if (!user) {
       navigate("/login", {
