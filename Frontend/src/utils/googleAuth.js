@@ -135,13 +135,6 @@ export const triggerGoogleLogin = async ({ clientId, onSuccess, onError }) => {
 export const renderGoogleButton = ({ clientId, container, onSuccess, onError }) => {
   if (!container) return;
 
-  const isLocalDevelopmentHost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-
-  if (isLocalDevelopmentHost) {
-    container.innerHTML = '';
-    return;
-  }
-
   if (!hasValidGoogleClientId(clientId)) {
     container.innerHTML = '';
     onError?.('Google sign-in is not configured. Add a valid VITE_GOOGLE_CLIENT_ID from Google Cloud Console and allow this origin in the OAuth client settings.');
@@ -161,11 +154,13 @@ export const renderGoogleButton = ({ clientId, container, onSuccess, onError }) 
 
       initializeGoogle({ clientId, onSuccess, onError, autoSelect: false });
 
+      const width = Math.max(container.clientWidth || 280, 280);
+
       window.google.accounts.id.renderButton(container, {
         theme: 'outline',
         size: 'large',
         shape: 'pill',
-        width: container.offsetWidth || 280,
+        width,
         text: 'continue_with',
         logo_alignment: 'center',
       });

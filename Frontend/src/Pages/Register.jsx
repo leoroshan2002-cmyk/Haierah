@@ -11,7 +11,7 @@ import Logotransparent from "../assets/HaierahLogoTransparent.png";
 import PageBack from "../Components/CommonDetails/PageBack";
 export default function Register() {
   const navigate = useNavigate();
-  const { user, register, updateUser } = useAuth();
+  const { user, register, updateUser, isAuthReady } = useAuth();
   const googleButtonRef = useRef(null);
 
   const [name, setName] = useState("");
@@ -26,10 +26,9 @@ export default function Register() {
   const [verificationMessage, setVerificationMessage] = useState('');
 
   useEffect(() => {
-    if (user) {
-      navigate('/', { replace: true });
-    }
-  }, [user, navigate]);
+    if (!isAuthReady || !user) return;
+    navigate('/', { replace: true });
+  }, [isAuthReady, user, navigate]);
 
   const decodeJwtPayload = (token) => {
     try {
@@ -145,24 +144,41 @@ export default function Register() {
       clientId,
       container: googleButtonRef.current,
       onSuccess: async (credential) => {
-        const payload = decodeJwtPayload(credential);
-        if (payload?.email) {
-          setEmail(payload.email);
-        }
-        if (payload?.name) {
-          setName(payload.name);
-        }
-        setGoogleCredential(credential);
-        setGoogleSignedIn(true);
-        setGoogleAccountLoaded(true);
+        try {
+          const result = await fetch(buildApiUrl('/api/auth/google'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ credential, createIfMissing: true }),
+          });
 
-        alert('Google account loaded. Please complete your site registration by entering a new password and confirming it.');
+          const contentType = result.headers.get('content-type') || '';
+          const data = contentType.includes('application/json') ? await result.json() : {};
+
+          if (!result.ok) {
+            alert(data.message || 'Google sign-up failed.');
+            return;
+          }
+
+          const nextUser = data?.user || null;
+          if (nextUser) {
+            updateUser(nextUser);
+            localStorage.setItem('user', JSON.stringify(nextUser));
+          }
+          navigate('/', { replace: true });
+        } catch (error) {
+          alert(error?.message || 'Google sign-up failed.');
+        }
       },
       onError: (message) => {
         alert(message || 'Google sign-up failed.');
       },
     });
   }, [navigate, updateUser]);
+
+  if (!isAuthReady) {
+    return <div className="min-h-screen flex items-center justify-center bg-[#f8f7f5] text-gray-500">Loading…</div>;
+  }
 
   return (
     <div className="min-h-screen relative">

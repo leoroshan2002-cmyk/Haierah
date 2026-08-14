@@ -14,7 +14,7 @@ import Logotransparent from "../assets/HaierahLogoTransparent.png";
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, updateUser } = useAuth();
+  const { login, updateUser, user, isAuthReady } = useAuth();
   const googleButtonRef = useRef(null);
   const { addToCart } = useCart();
   const { toggleWishlist } = useWishlist();
@@ -23,9 +23,16 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
+    if (!isAuthReady || !user) return;
+
+    const fallbackDestination = location.state?.from?.pathname || "/";
+    const destination = fallbackDestination === "/login" || fallbackDestination === "/register" ? "/" : fallbackDestination;
+    navigate(destination, { replace: true });
+  }, [isAuthReady, user, location.state, navigate]);
+
+  useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-    const hostIsLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (!clientId || hostIsLocal || !googleButtonRef.current) return;
+    if (!clientId || !googleButtonRef.current) return;
 
     renderGoogleButton({
       clientId,
@@ -35,7 +42,7 @@ export default function Login() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ credential, createIfMissing: false }),
+          body: JSON.stringify({ credential, createIfMissing: true }),
         });
 
         const contentType = result.headers.get('content-type') || '';
@@ -111,9 +118,8 @@ export default function Login() {
         return;
       }
 
-      const destination =
-        pendingAction?.from ||
-        `${location.state?.from?.pathname || "/home"}${location.state?.from?.search || ""}`;
+      const redirectTarget = pendingAction?.from || location.state?.from?.pathname || "/";
+      const destination = redirectTarget === "/login" || redirectTarget === "/register" ? "/" : redirectTarget;
 
       navigate(destination, { replace: true });
     } else {
