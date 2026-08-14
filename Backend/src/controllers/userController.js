@@ -6,6 +6,7 @@ const toUserResponse = (user) => {
   const doc = user.toObject();
   doc.id = doc._id.toString();
   delete doc._id;
+  delete doc.password;
   return doc;
 };
 
@@ -27,6 +28,13 @@ export const getCustomer = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    const isAdmin = req.user?.role === 'admin';
+    const isOwner = req.user && String(req.user.userId || req.user.id || '') === String(customer._id);
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'Not authorized to view this profile' });
+    }
+
     res.status(200).json({ success: true, customer: toUserResponse(customer) });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -46,6 +54,13 @@ export const createCustomer = async (req, res) => {
 export const updateCustomer = async (req, res) => {
   try {
     const { id } = req.params;
+    const isAdmin = req.user?.role === 'admin';
+    const isOwner = req.user && String(req.user.userId || req.user.id || '') === String(id);
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'Not authorized to update this profile' });
+    }
+
     const payload = { ...req.body };
 
     if (payload.password) {

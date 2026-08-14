@@ -4,6 +4,7 @@ import { loadInitialState, saveState } from '../utils/store.js';
 import { notifyCatalogChanged } from '../../utils/catalogSync.js';
 import { normalizeImageList } from '../../utils/productImages.js';
 import CampaignManagement from "../../Pages/CampaignManagement";
+import { useAuth } from '../../Context/AuthContext';
 import { DashboardView } from '../components/DashboardView.jsx';
 import { ProductsView } from '../components/ProductsView.jsx';
 import { OrdersView } from '../components/OrdersView.jsx';
@@ -18,19 +19,11 @@ import {
 } from '../components/OtherViews.jsx';
 
 export function useAdminController() {
+  const { user, isAuthReady } = useAuth();
   const [state, setState] = useState(() => loadInitialState());
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
-    if (typeof window === 'undefined') return false;
-
-    try {
-      const savedUser = JSON.parse(localStorage.getItem('user') || 'null');
-      return savedUser?.role === 'admin' || Boolean(localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken'));
-    } catch {
-      return false;
-    }
-  });
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => user?.role === 'admin');
   const [notifications, setNotifications] = useState([]);
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
   const [toast, setToast] = useState(null);
@@ -38,16 +31,9 @@ export function useAdminController() {
   const toastTimeoutRef = useRef(null);
 
   useEffect(() => {
-    try {
-      const savedUser = JSON.parse(localStorage.getItem('user') || 'null');
-      const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
-      setIsAdminLoggedIn(savedUser?.role === 'admin' || Boolean(token));
-    } catch {
-      setIsAdminLoggedIn(false);
-    } finally {
-      setIsHydrated(true);
-    }
-  }, []);
+    setIsAdminLoggedIn(Boolean(user?.role === 'admin'));
+    setIsHydrated(Boolean(isAuthReady));
+  }, [user, isAuthReady]);
 
   useEffect(() => {
     if (!isHydrated) return;

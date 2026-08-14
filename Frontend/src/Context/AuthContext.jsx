@@ -3,28 +3,87 @@ import { buildApiUrl } from "../services/api";
 
 export const AuthContext = createContext();
 
+const sanitizeUser = (user) => {
+  if (!user) return null;
+
+  return {
+    id: user.id || user._id || user.userId || "",
+    name: user.name || "",
+    firstName: user.firstName || "",
+    lastName: user.lastName || "",
+    email: user.email || "",
+    avatar: user.avatar || "",
+    role: user.role || "user",
+    phone: user.phone || "",
+    gender: user.gender || "",
+    birthday: user.birthday || "",
+    address: user.address || "",
+    city: user.city || "",
+    state: user.state || "",
+    zip: user.zip || "",
+  };
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = typeof window !== "undefined" ? localStorage.getItem("user") : null;
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
 
   useEffect(() => {
-    const loadStoredProfile = () => {
-      if (typeof window === "undefined") return;
-      const savedUser = localStorage.getItem("user");
-      if (savedUser) {
-        try {
-          const parsedUser = JSON.parse(savedUser);
-          setUser((currentUser) => ({ ...(currentUser || {}), ...parsedUser }));
-        } catch {
+    const restoreSession = async () => {
+      if (typeof window === "undefined") {
+        setIsAuthReady(true);
+        return;
+      }
+
+      const hasSessionCookie = document.cookie
+        .split("; ")
+        .some((cookie) => cookie.startsWith("token="));
+
+      if (!hasSessionCookie) {
+        setUser(null);
+        localStorage.removeItem("user");
+        setIsAuthReady(true);
+        return;
+      }
+
+      try {
+        const response = await fetch(buildApiUrl("/api/auth/me"), {
+          method: "GET",
+          credentials: "include",
+          headers: { Accept: "application/json" },
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          setUser(null);
+          localStorage.removeItem("user");
+          return;
+        }
+
+        if (!response.ok) {
+          setUser(null);
+          localStorage.removeItem("user");
+          return;
+        }
+
+        const data = await response.json();
+        const nextUser = sanitizeUser(data?.user);
+        setUser(nextUser);
+        if (nextUser) {
+          localStorage.setItem("user", JSON.stringify(nextUser));
+        } else {
           localStorage.removeItem("user");
         }
+      } catch {
+        setUser(null);
+        localStorage.removeItem("user");
+      } finally {
+        setIsAuthReady(true);
       }
     };
 
-    loadStoredProfile();
+    restoreSession();
   }, []);
+
   const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "admin@haierah.com").trim().toLowerCase();
   const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
   const loginUrl = buildApiUrl("/api/auth/login");
@@ -37,31 +96,27 @@ export const AuthProvider = ({ children }) => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        if (
-          email.trim().toLowerCase() === adminEmail &&
-          password === adminPassword
-        ) {
-          const fallbackAdminUser = {
-            id: "local-admin",
-            name: "Admin",
-            email: adminEmail,
-            role: "admin",
-          };
+        const fallbackAdminUser =
+          email.trim().toLowerCase() === adminEmail && password === adminPassword
+            ? {
+                id: "local-admin",
+                name: "Admin",
+                email: adminEmail,
+                role: "admin",
+              }
+            : null;
 
+        if (fallbackAdminUser) {
           setUser(fallbackAdminUser);
           localStorage.setItem("user", JSON.stringify(fallbackAdminUser));
-          localStorage.setItem("adminToken", "admin");
-
-          return {
-            success: true,
-            user: fallbackAdminUser,
-          };
+          return { success: true, user: fallbackAdminUser };
         }
 
         return {
@@ -70,39 +125,40 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      const loggedInUser = data.user;
+      const meResponse = await fetch(buildApiUrl("/api/auth/me"), {
+        method: "GET",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
+
+      const meData = meResponse.ok ? await meResponse.json() : null;
+      const loggedInUser = sanitizeUser(meData?.user || data.user);
       setUser(loggedInUser);
-      localStorage.setItem("user", JSON.stringify(loggedInUser));
-      if (loggedInUser?.role === "admin") {
-        localStorage.setItem("adminToken", "admin");
+      if (loggedInUser) {
+        localStorage.setItem("user", JSON.stringify(loggedInUser));
       } else {
-        localStorage.removeItem("adminToken");
+        localStorage.removeItem("user");
       }
 
       return {
         success: true,
         user: loggedInUser,
       };
-    } catch (error) {
-      if (
-        email.trim().toLowerCase() === adminEmail &&
-        password === adminPassword
-      ) {
-        const fallbackAdminUser = {
-          id: "local-admin",
-          name: "Admin",
-          email: adminEmail,
-          role: "admin",
-        };
+    } catch {
+      const fallbackAdminUser =
+        email.trim().toLowerCase() === adminEmail && password === adminPassword
+          ? {
+              id: "local-admin",
+              name: "Admin",
+              email: adminEmail,
+              role: "admin",
+            }
+          : null;
 
+      if (fallbackAdminUser) {
         setUser(fallbackAdminUser);
         localStorage.setItem("user", JSON.stringify(fallbackAdminUser));
-        localStorage.setItem("adminToken", "admin");
-
-        return {
-          success: true,
-          user: fallbackAdminUser,
-        };
+        return { success: true, user: fallbackAdminUser };
       }
 
       return {
@@ -119,6 +175,7 @@ export const AuthProvider = ({ children }) => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ name, email, password, confirmPassword }),
       });
 
@@ -136,7 +193,7 @@ export const AuthProvider = ({ children }) => {
         user: data.user,
         emailVerificationSent: data.emailVerificationSent,
       };
-    } catch (error) {
+    } catch {
       return {
         success: false,
         message: "Unable to reach authentication server. Please try again.",
@@ -157,7 +214,7 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: data.message || 'Unable to resend verification code.' };
       }
       return { success: true, message: data.message || 'Verification code resent.' };
-    } catch (error) {
+    } catch {
       return { success: false, message: 'Unable to reach authentication server. Please try again.' };
     }
   };
@@ -175,27 +232,43 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: data.message || 'Verification failed.' };
       }
       return { success: true, message: data.message || 'Email verified successfully.' };
-    } catch (error) {
+    } catch {
       return { success: false, message: 'Unable to reach authentication server. Please try again.' };
     }
   };
 
   const updateUser = (updatedUser) => {
-    setUser(updatedUser);
+    const nextUser = sanitizeUser(updatedUser);
+    setUser(nextUser);
     if (typeof window !== "undefined") {
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      if (nextUser) {
+        localStorage.setItem("user", JSON.stringify(nextUser));
+      } else {
+        localStorage.removeItem("user");
+      }
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch(buildApiUrl('/api/auth/logout'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      });
+    } catch {
+      // Ignore logout API failures and clear local auth state.
+    }
+
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("adminToken");
     sessionStorage.removeItem("adminToken");
+    return { success: true };
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, resendEmailVerification, confirmEmailVerificationCode, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isAuthReady, login, register, resendEmailVerification, confirmEmailVerificationCode, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

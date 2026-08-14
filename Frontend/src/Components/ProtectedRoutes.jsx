@@ -6,6 +6,10 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
   const user = auth?.user;
 
+  if (auth?.isAuthReady === false) {
+    return null;
+  }
+
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

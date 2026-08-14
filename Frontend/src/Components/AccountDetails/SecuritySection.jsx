@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Lock, ShieldCheck, ChevronRight } from "lucide-react";
 import { useAuth } from "../../Context/AuthContext";
+import { buildApiUrl } from "../../services/api";
 
 const cards = [
   {

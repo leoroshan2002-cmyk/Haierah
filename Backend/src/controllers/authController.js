@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import emailService from '../services/email/emailService.js';
@@ -68,6 +69,32 @@ const toAuthUserResponse = (user) => ({
   state: user.state || '',
   zip: user.zip || '',
 });
+
+const getCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isCrossOrigin = Boolean(process.env.FRONTEND_URL && process.env.FRONTEND_URL !== 'http://localhost:5173');
+
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction && isCrossOrigin ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+};
+
+const setAuthCookie = (res, user) => {
+  const token = jwt.sign(
+    {
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+  );
+
+  res.cookie('token', token, getCookieOptions());
+};
 
 export const registerUser = async (req, res) => {
   try {
@@ -255,6 +282,8 @@ export const loginUser = async (req, res) => {
         });
       }
 
+      setAuthCookie(res, adminUser);
+
       return res.status(200).json({
         message: 'Login successful',
         user: toAuthUserResponse(adminUser),
@@ -270,6 +299,8 @@ export const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+
+    setAuthCookie(res, user);
 
     res.status(200).json({
       message: 'Login successful',
@@ -358,6 +389,8 @@ export const googleAuth = async (req, res) => {
       await user.save();
     }
 
+    setAuthCookie(res, user);
+
     return res.status(200).json({
       message: 'Google login successful',
       user: toAuthUserResponse({
@@ -369,6 +402,32 @@ export const googleAuth = async (req, res) => {
     console.error('Google auth failed:', error);
     return res.status(401).json({ message: 'Google authentication failed.' });
   }
+};
+
+export const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(200).json({
+      user: toAuthUserResponse(user),
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const logoutUser = async (_req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  });
+
+  return res.status(200).json({ message: 'Logged out successfully' });
 };
 
 export const requestSetPasswordOtp = async (req, res) => {

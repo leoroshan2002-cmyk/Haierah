@@ -59,8 +59,16 @@ export default function Login() {
           return;
         }
 
-        updateUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        const meResponse = await fetch(buildApiUrl('/api/auth/me'), {
+          method: 'GET',
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+        });
+
+        const meData = meResponse.ok ? await meResponse.json() : null;
+        const nextUser = meData?.user || data.user;
+        updateUser(nextUser);
+        localStorage.setItem('user', JSON.stringify(nextUser));
 
         const destination = location.state?.from?.pathname || '/';
         navigate(destination, { replace: true });

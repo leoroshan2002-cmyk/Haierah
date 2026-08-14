@@ -1,5 +1,6 @@
 import express from "express";
 import multer from "multer";
+import cookieParser from "cookie-parser";
 import "dotenv/config";
 import cors from "cors";
 import connectDB from "./src/config/db.js";
@@ -21,15 +22,18 @@ const currentDir = path.dirname(currentFile);
 
 await connectDB();
 
+const frontendOrigin = process.env.FRONTEND_URL || "http://localhost:5173";
+
 app.use(
   cors({
-    origin: true,
+    origin: frontendOrigin,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 
+app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 
 // Handle malformed JSON payloads (body-parser syntax errors)

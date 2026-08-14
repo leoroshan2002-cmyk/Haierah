@@ -51,7 +51,7 @@ export const resolveBackendImageUrl = (image) => {
   return apiBaseUrl ? `${apiBaseUrl}${normalizedImage}` : normalizedImage;
 };
 
-const categoriesUrl = buildApiUrl('/api/admin/categories');
+const categoriesUrl = buildApiUrl('/api/categories');
 const productsUrl = buildApiUrl('/api/products');
 const campaignsUrl = buildApiUrl('/api/campaigns');
 

@@ -1,15 +1,18 @@
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
 const AdminProtectedRoute = ({ children }) => {
-  const savedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-  const user = savedUser ? JSON.parse(savedUser) : null;
-  const hasAdminToken = typeof window !== 'undefined' && Boolean(localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken'));
+  const { user, isAuthReady } = useAuth();
 
-  if (!user && !hasAdminToken) {
+  if (isAuthReady === false) {
+    return null;
+  }
+
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== "admin" && !hasAdminToken) {
+  if (user.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 

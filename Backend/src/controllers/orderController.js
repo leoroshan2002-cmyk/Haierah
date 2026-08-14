@@ -211,6 +211,14 @@ export const getOrderById = async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
+    const isAdmin = req.user?.role === 'admin';
+    const isOwner = req.user && String(req.user.userId || req.user.id || '') === String(order.customer?._id || '') ? true : false;
+    const emailMatches = String(order.customerEmail || '').toLowerCase() === String(req.user?.email || '').toLowerCase();
+
+    if (!isAdmin && !emailMatches && !isOwner) {
+      return res.status(403).json({ message: 'Not authorized to view this order' });
+    }
+
     res.status(200).json({ success: true, order: toOrderResponse(order) });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -220,6 +228,13 @@ export const getOrderById = async (req, res) => {
 export const getOrdersByUser = async (req, res) => {
   try {
     const { userId } = req.params;
+    const isAdmin = req.user?.role === 'admin';
+    const isOwner = req.user && String(req.user.userId || req.user.id || '') === String(userId);
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ message: 'Not authorized to view these orders' });
+    }
+
     const user = await User.findById(userId);
 
     if (!user) {
