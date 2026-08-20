@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { fetchProducts } from "../services/api";
 import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl, normalizeImageList } from "../utils/productImages";
 import { Link } from "react-router-dom";
-import BackButton from "../Components/BackButton";
 
 export default function NewArrivals() {
   const [products, setProducts] = useState([]);
@@ -15,7 +14,6 @@ export default function NewArrivals() {
       const all = await fetchProducts();
       if (!mounted) return;
 
-      // Choose most recent products. Prefer createdAt, fallback to id
       const sorted = all.slice().sort((a, b) => {
         const aTime = a.createdAt ? new Date(a.createdAt).getTime() : (a.id || 0);
         const bTime = b.createdAt ? new Date(b.createdAt).getTime() : (b.id || 0);
@@ -33,7 +31,6 @@ export default function NewArrivals() {
   return (
     <section className="max-w-7xl mx-auto px-6 py-20">
 
-      <BackButton />
       {/* Heading */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
        

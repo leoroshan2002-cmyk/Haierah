@@ -10,9 +10,9 @@ export default function OrderReview() {
   } = useCart();
 
   return (
-    <div className="p-8">
+    <div className="p-5 sm:p-8">
 
-      <h2 className="text-3xl font-serif font-semibold mb-8">
+      <h2 className="mb-6 text-2xl font-serif font-semibold sm:mb-8 sm:text-3xl">
         Review Your Order
       </h2>
 
@@ -31,30 +31,30 @@ export default function OrderReview() {
               <motion.div
                 whileHover={{ y: -3 }}
                 key={itemKey}
-                className="flex gap-6 border rounded-3xl p-5"
+                className="flex min-w-0 flex-col gap-4 rounded-3xl border p-4 sm:flex-row sm:gap-6 sm:p-5"
               >
                 <img
                   src={item.image}
-                  className="w-28 h-32 rounded-2xl object-cover"
+                  className="h-28 w-24 shrink-0 rounded-2xl object-cover sm:h-32 sm:w-28"
                   alt={item.name}
                 />
 
-                <div className="flex-1">
-                  <div className="flex justify-between">
-                    <div>
-                      <h3 className="text-2xl font-serif font-semibold">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+                    <div className="min-w-0">
+                      <h3 className="break-words text-xl font-serif font-semibold sm:text-2xl">
                         {item.name}
                       </h3>
                       <p className="text-gray-500 mt-2">Size : {sizeLabel}</p>
                       <p className="text-gray-500">Color : {colorLabel}</p>
                     </div>
 
-                    <div className="text-2xl font-bold">
+                    <div className="text-xl font-bold sm:text-2xl">
                       ₹{((item.price || 0) * (item.qty || 0)).toFixed(2)}
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mt-6">
+                  <div className="mt-5 flex items-center justify-between gap-4 sm:mt-6">
                     <div className="flex border rounded-full overflow-hidden">
                       <button
                         onClick={() => updateQuantity(itemKey, (item.qty || 1) - 1)}

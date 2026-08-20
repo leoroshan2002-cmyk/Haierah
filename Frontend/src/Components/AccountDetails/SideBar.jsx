@@ -28,13 +28,15 @@ export default function Sidebar({ activepage, setActivePage }) {
   return (
     <aside
       className="
-        fixed
-        top-20
-        left-0
-        w-[270px]
-        h-[calc(100vh-80px)]
+        md:fixed
+        md:top-20
+        md:left-0
+        w-full
+        md:w-[270px]
+        h-auto
+        md:h-[calc(100vh-80px)]
         bg-[#F7F4F2]
-        border-r
+        border-b md:border-r
         border-zinc-200
         flex
         flex-col
@@ -43,8 +45,8 @@ export default function Sidebar({ activepage, setActivePage }) {
       "
     >
       {/* Top */}
-      <div className="pt-10">
-        <div className="px-8 mb-10">
+      <div className="pt-5 md:pt-10">
+        <div className="px-5 mb-5 md:px-8 md:mb-10">
           <h1 className="font-serif text-2xl tracking-wide">
             ELITE
           </h1>
@@ -54,7 +56,7 @@ export default function Sidebar({ activepage, setActivePage }) {
           </p>
         </div>
 
-        <nav className="space-y-1 relative">
+        <nav className="no-scrollbar flex gap-1 overflow-x-auto px-3 pb-3 md:block md:space-y-1 md:overflow-visible md:px-0 md:pb-0">
           {menu.map((item) => {
             const Icon = item.icon;
             const isActive = activepage === item.title;
@@ -68,7 +70,7 @@ export default function Sidebar({ activepage, setActivePage }) {
                   type: "spring",
                   stiffness: 300,
                 }}
-                className={`relative w-full flex items-center gap-4 px-8 py-4 text-left transition-all ${
+                className={`relative flex min-w-max items-center gap-3 rounded-lg px-4 py-3 text-left transition-all md:w-full md:gap-4 md:rounded-none md:px-8 md:py-4 ${
                   isActive
                     ? "text-black"
                     : "text-zinc-500 hover:text-black"
@@ -93,7 +95,7 @@ export default function Sidebar({ activepage, setActivePage }) {
       </div>
 
       {/* Bottom */}
-      <div className="p-6 border-t border-zinc-200">
+      <div className="border-t border-zinc-200 p-4 md:p-6">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}

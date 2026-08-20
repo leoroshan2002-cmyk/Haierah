@@ -177,7 +177,7 @@ export default function PersonalInfo() {
   };
 
     return (
-        <div className="min-h-full overflow-y-auto no-scrollbar px-4 mt-10">
+        <div className="min-h-full overflow-y-auto no-scrollbar px-0 mt-6 md:mt-10">
 
             {/* HEADER */}
             <motion.section
@@ -259,10 +259,10 @@ export default function PersonalInfo() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7 }}
-                className="mt-24"
+                className="mt-14 md:mt-24"
             >
                 <div className="flex items-center justify-between">
-                    <h2 className="font-serif text-[44px]">
+                    <h2 className="font-serif text-3xl sm:text-[38px] md:text-[44px]">
                         Personal Information
                     </h2>
 
@@ -286,7 +286,7 @@ export default function PersonalInfo() {
                 )}
 
                 {/* GRID */}
-                <div className="grid grid-cols-2 gap-x-40 gap-y-16 mt-12 mb-20">
+                <div className="mt-10 mb-16 grid grid-cols-1 gap-x-8 gap-y-10 sm:grid-cols-2 md:mt-12 md:gap-x-16 md:gap-y-16 md:mb-20">
                     {details.map((item, index) => (
                         <motion.div
                             key={index}

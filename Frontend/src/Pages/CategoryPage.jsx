@@ -20,26 +20,37 @@ export default function CategoryPage() {
   const subcategory = searchParams.get("subcategory");
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
+  const [loadingCategory, setLoadingCategory] = useState(true);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const { addToCart } = useCart();
   const { requireAuthAction } = useRequireAuthAction();
   const { toggleWishlist } = useWishlist();
 
   useEffect(() => {
+    let cancelled = false;
+    setLoadingCategory(true);
     const loadCategory = async () => {
       const categories = await fetchCategories();
+      if (cancelled) return;
       const matchedCategory = categories.find(
         (cat) => cat.slug === slug || cat.slug === encodeURIComponent(slug)
       );
       setCategory(matchedCategory || null);
+      setLoadingCategory(false);
     };
 
     loadCategory();
+    return () => { cancelled = true; };
   }, [slug]);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoadingProducts(true);
     const loadProducts = async () => {
       const response = await fetchProducts();
+      if (cancelled) return;
       setProducts(response);
+      setLoadingProducts(false);
     };
 
     loadProducts();
@@ -56,6 +67,7 @@ export default function CategoryPage() {
     const unsubscribeCatalog = subscribeToCatalogChanges(handleInventoryChange);
 
     return () => {
+      cancelled = true;
       unsubscribeCatalog();
       if (typeof window !== 'undefined') {
         window.removeEventListener('haierah-products-updated', handleInventoryChange);
@@ -122,6 +134,30 @@ export default function CategoryPage() {
         return matchesCategory && matchesSubcategory;
       })
     : [];
+
+  if (loadingCategory || loadingProducts) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#f8f7f5] via-white to-white">
+        <div className="max-w-[1440px] mx-auto px-8 lg:px-12 pt-24 pb-24">
+          <div className="mb-6">
+            <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100">
+                <div className="aspect-[3/4] bg-gray-200 animate-pulse" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+                  <div className="h-5 bg-gray-200 rounded animate-pulse w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!category) {
     return (

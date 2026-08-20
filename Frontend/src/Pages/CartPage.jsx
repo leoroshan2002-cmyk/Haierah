@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Share2, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,7 +14,6 @@ export default function CartPage() {
   const navigate = useNavigate();
   const cartLeftRef = useRef(null);
   const cartRightRef = useRef(null);
-  const [promoCode, setPromoCode] = useState("");
 
   useEffect(() => {
     if (cart.length === 0) return;
@@ -66,8 +65,8 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-[#faf8f6]">
-        <h1 className="text-5xl font-serif font-bold mb-4">
+      <div className="flex min-h-[calc(100dvh-80px)] flex-col items-center justify-center bg-[#faf8f6] px-4 text-center">
+        <h1 className="mb-4 text-4xl font-serif font-bold sm:text-5xl">
           Your Cart
         </h1>
 
@@ -86,31 +85,31 @@ export default function CartPage() {
   }
 
   return (
-    <section className="bg-[#faf8f6] min-h-screen py-12">
+    <section className="min-h-screen bg-[#faf8f6] py-8 sm:py-12">
 
   {/* Back Button */}
-  <div className="max-w-6xl mx-auto px-6 mb-4">
+  <div className="mx-auto mb-4 max-w-6xl px-4 sm:px-6">
     <PageBack />
   </div>
 
-  <div className="max-w-6xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 w-6xl ">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mb-8 flex flex-col md:mb-10 md:flex-row md:items-center md:justify-between">
 
-          <h1 className="text-6xl font-serif">
+          <h1 className="text-4xl font-serif sm:text-6xl">
             My Cart
           </h1>
 
-          <div className="flex gap-4 mt-6 md:mt-0">
+          <div className="mt-5 flex flex-wrap gap-3 md:mt-0 md:gap-4">
 
             <button
-              className="border rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-gray-100 transition"
+              className="flex items-center gap-2 rounded-xl border px-4 py-3 text-sm transition hover:bg-gray-100 sm:px-6"
             >
               Share Cart
               <Share2 size={18} />
             </button>
 
             <button
-              className="bg-black text-white rounded-xl px-8 py-3 hover:bg-neutral-800 transition"
+              className="rounded-xl bg-black px-6 py-3 text-sm text-white transition hover:bg-neutral-800 sm:px-8"
             >
               BUY ALL
             </button>
@@ -119,7 +118,7 @@ export default function CartPage() {
 
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-4 ml-10 p-2">
+        <div className="grid gap-8 p-0 lg:grid-cols-3 lg:gap-6">
 
           {/* LEFT */}
 
@@ -141,22 +140,22 @@ export default function CartPage() {
                 <motion.div
                   key={item.cartItemKey || item.id}
                   whileHover={{ scale: 1.01 }}
-                  className="flex gap-12 border-t pt-6"
+                  className="flex flex-col gap-4 border-t pt-5 sm:flex-row sm:gap-6 sm:pt-6"
                 >
 
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-32 h-36 rounded-lg object-cover"
+                    className="h-32 w-28 shrink-0 rounded-lg object-cover sm:h-36 sm:w-32"
                   />
 
                   <div className="flex-1">
 
-                    <div className="flex justify-between">
+                    <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:justify-between">
 
                       <div>
 
-                        <h2 className="text-3xl font-serif font-semibold">
+                        <h2 className="break-words text-2xl font-serif font-semibold sm:text-3xl">
                           {item.name}
                         </h2>
 
@@ -168,7 +167,7 @@ export default function CartPage() {
                           Color : {item.selectedColor || item.color || "Cream"}
                         </p>
 
-                        <div className="flex items-center gap-3 mt-3">
+                        <div className="mt-3 flex flex-wrap items-center gap-3">
 
                           <span>Quantity :</span>
 
@@ -213,7 +212,7 @@ export default function CartPage() {
 
                       </div>
 
-                      <div className="text-3xl font-serif font-bold">
+                      <div className="text-2xl font-serif font-bold sm:text-3xl">
                         ₹
                         {(item.price * item.qty).toFixed(2)}
                       </div>
@@ -240,14 +239,14 @@ export default function CartPage() {
 
             <motion.div
               whileHover={{ y: -4 }}
-              className="bg-white rounded-3xl p-8 shadow w-[350px]"
+              className="w-full rounded-3xl bg-white p-5 shadow sm:p-8 lg:sticky lg:top-24"
             >
 
-              <h2 className="text-4xl font-serif font-bold mb-8">
+              <h2 className="mb-6 text-3xl font-serif font-bold sm:mb-8 sm:text-4xl">
                 Order Summary
               </h2>
 
-              <div className="space-y-4 text-lg">
+              <div className="space-y-4 text-base sm:text-lg">
 
                 <div className="flex justify-between">
                   <span>Subtotal</span>
@@ -268,7 +267,7 @@ export default function CartPage() {
 
               <hr className="my-6" />
 
-              <div className="flex justify-between text-3xl font-bold">
+              <div className="flex justify-between gap-4 text-2xl font-bold sm:text-3xl">
 
                 <span>Total</span>
 
@@ -313,7 +312,7 @@ export default function CartPage() {
 
 
         </div>
-        <div className=" ml-20">
+        <div className="mt-8 lg:mt-0">
           <RecommendationPage />
         </div>
 

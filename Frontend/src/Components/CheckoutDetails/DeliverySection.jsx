@@ -32,27 +32,32 @@ const deliveryOptions = [
   },
 ];
 
-export default function DeliverySection() {
+export default function DeliverySection({ onSelectDelivery }) {
   const [selected, setSelected] = useState("standard");
   const [show, setShow] = useState(false);
+
+  const handleSelect = (id) => {
+    setSelected(id);
+    onSelectDelivery?.(deliveryOptions.find((o) => o.id === id));
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 25 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="border-b border-gray-200 p-8"
+      className="border-b border-gray-200 p-5 sm:p-8"
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h2 className="text-3xl font-semibold">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <h2 className="text-2xl font-semibold sm:text-3xl">
              Delivery Method
           </h2>
 
           <CheckCircle2
             size={26}
-            className="text-green-600 fill-green-600 text-white"
+            className="text-green-600 fill-green-600"
           />
         </div>
 
@@ -82,7 +87,7 @@ export default function DeliverySection() {
                 key={item.id}
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setSelected(item.id)}
+                onClick={() => handleSelect(item.id)}
                 className={`cursor-pointer rounded-2xl border p-5 transition
                   ${
                     selected === item.id
@@ -90,10 +95,10 @@ export default function DeliverySection() {
                       : "border-gray-200 hover:border-[#0d2746]"
                   }`}
               >
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex min-w-0 gap-3 sm:gap-4">
                     <div
-                      className={`w-14 h-14 rounded-xl flex items-center justify-center
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl sm:h-14 sm:w-14
                         ${
                           selected === item.id
                             ? "bg-[#0d2746] text-white"
@@ -104,7 +109,7 @@ export default function DeliverySection() {
                     </div>
 
                     <div>
-                      <h3 className="text-xl font-semibold">
+                      <h3 className="text-base font-semibold sm:text-xl">
                         {item.title}
                       </h3>
 
@@ -114,8 +119,8 @@ export default function DeliverySection() {
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <p className="font-bold text-lg">
+                  <div className="shrink-0 text-right">
+                    <p className="text-base font-bold sm:text-lg">
                       {item.price}
                     </p>
 

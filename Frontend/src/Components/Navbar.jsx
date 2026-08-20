@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Heart, Search, ShoppingBag, User } from "lucide-react";
+import { Heart, LayoutGrid, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useWishlist } from "../Context/WhislistContext";
 import { useCart } from "../Context/CartContext";
 import logotransparent from "../assets/HaierahLogoTransparent.png";
@@ -15,7 +15,7 @@ const staticNavItems = [
 
 export default function Navbar() {
   const { wishlist } = useWishlist();
-  const { cart, getCartCount } = useCart();
+  const { getCartCount } = useCart();
   const cartCount = getCartCount();
 
   const location = useLocation();
@@ -24,6 +24,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState("MEN");
   const [search, setSearch] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [categories, setCategories] = useState([]);
 
@@ -31,7 +32,7 @@ export default function Navbar() {
     .filter(
       (cat) =>
         !staticNavItems.some((item) => item.name === cat.name?.toUpperCase()) &&
-        cat.slug
+        cat.slug,
     )
     .map((cat) => ({
       name: cat.name?.toUpperCase(),
@@ -43,9 +44,8 @@ export default function Navbar() {
     (item, index, array) =>
       index ===
       array.findIndex(
-        (other) =>
-          other.name === item.name && other.path === item.path
-      )
+        (other) => other.name === item.name && other.path === item.path,
+      ),
   );
 
   useEffect(() => {
@@ -69,16 +69,6 @@ export default function Navbar() {
     loadCategories();
   }, []);
 
-  const handleMenu = (item) => {
-    setActiveMenu(item.name);
-
-    if (item.type === "page" || item.type === "category-page") {
-      setOpen(true);
-    } else {
-      setOpen(false);
-    }
-  };
-
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
@@ -89,23 +79,21 @@ export default function Navbar() {
           : "bg-white/95 shadow-md backdrop-blur-md"
       }`}
     >
-      <div className="relative max-w-7xl mx-auto h-20 px-6 flex items-center justify-between">
-
+      <div className="relative max-w-7xl mx-auto h-20 px-4 sm:px-6 flex items-center justify-between">
         {/* LOGO */}
         <NavLink to="/home">
           <img
             src={logotransparent}
             alt="HAIERAH Logo"
-            className="h-14 w-auto object-contain transition-all duration-300"
+            className="h-11 sm:h-14 w-auto object-contain transition-all duration-300"
           />
         </NavLink>
         {/* NAVIGATION */}
-        <nav className="hidden md:flex gap-10 text-sm font-medium">
+        <nav className="hidden md:flex gap-6 lg:gap-10 text-sm font-medium">
           {navItems.map((item) => (
             <motion.div
               key={item.path}
               whileHover={{ y: -2 }}
-              onMouseEnter={() => handleMenu(item)}
               className="serif"
             >
               <NavLink
@@ -118,11 +106,11 @@ export default function Navbar() {
                           ? "text-amber-700"
                           : "text-gray-900 hover:text-amber-700"
                         : isActive
-                        ? "text-white"
-                        : "text-white hover:text-gray-300"
+                          ? "text-white"
+                          : "text-white hover:text-gray-300"
                       : isActive
-                      ? "text-amber-700"
-                      : "text-gray-900 hover:text-amber-700"
+                        ? "text-amber-700"
+                        : "text-gray-900 hover:text-amber-700"
                   }`
                 }
               >
@@ -151,12 +139,26 @@ export default function Navbar() {
               : "text-gray-800"
           }`}
         >
-          <div
+          <button
+            onClick={() => {
+              setActiveMenu("MEN");
+              setOpen(true);
+            }}
+            className="cursor-pointer hover:text-amber-700 transition"
+            aria-label="Open categories"
+            type="button"
+          >
+            <LayoutGrid />
+          </button>
+
+          <button
             onClick={() => setSearch(true)}
             className="cursor-pointer hover:text-amber-700 transition"
+            aria-label="Search"
+            type="button"
           >
             <Search />
-          </div>
+          </button>
 
           <NavLink
             to="/wishlist"
@@ -184,14 +186,52 @@ export default function Navbar() {
             )}
           </NavLink>
 
-          <NavLink
-            to="/account"
-            className="hover:text-amber-700 transition"
-          >
+          <NavLink to="/account" className="hover:text-amber-700 transition">
             <User />
           </NavLink>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((previous) => !previous)}
+            className="md:hidden hover:text-amber-700 transition"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X /> : <Menu />}
+          </button>
         </div>
       </div>
+
+      {mobileMenuOpen && (
+        <nav className="md:hidden border-t border-black/10 bg-white px-5 py-4 shadow-lg text-gray-900">
+          <div className="flex flex-col gap-1">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `border-b border-gray-100 px-1 py-3 text-sm font-medium ${
+                    isActive ? "text-amber-700" : "text-gray-800"
+                  }`
+                }
+              >
+                {item.name}
+              </NavLink>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveMenu("MEN");
+                setOpen(true);
+                setMobileMenuOpen(false);
+              }}
+              className="border-b border-gray-100 px-1 py-3 text-left text-sm font-medium text-gray-800"
+            >
+              ALL CATEGORIES
+            </button>
+          </div>
+        </nav>
+      )}
 
       {/* CATEGORY SIDEBAR */}
       <CategoriesSidebar
@@ -201,12 +241,7 @@ export default function Navbar() {
       />
 
       {/* SEARCH */}
-      {search && (
-        <SearchBar
-          open={search}
-          setOpen={setSearch}
-        />
-      )}
+      {search && <SearchBar open={search} setOpen={setSearch} />}
     </header>
   );
 }

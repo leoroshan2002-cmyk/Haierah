@@ -16,21 +16,21 @@ export default function LoginSection() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="border-b p-6"
+      className="border-b p-5 sm:p-6"
     >
       {/* Header */}
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
 
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
 
-          <h2 className="text-3xl font-semibold">
+          <h2 className="text-2xl font-semibold sm:text-3xl">
              Account Details
           </h2>
 
           <CheckCircle2
             size={28}
-            className="text-green-600 fill-green-600 text-white"
+            className="text-green-600 fill-green-600"
           />
 
         </div>
@@ -41,9 +41,9 @@ export default function LoginSection() {
 
       {/* User */}
 
-      <p className="text-xl text-gray-600 mt-4">
+      <p className="mt-4 break-words text-base text-gray-600 sm:text-xl">
         Logged in as
-        <span className="font-medium text-black ml-2">
+        <span className="ml-1 font-medium text-black sm:ml-2">
           {displayName} ({displayEmail})
         </span>
       </p>

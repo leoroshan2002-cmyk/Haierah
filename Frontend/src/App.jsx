@@ -23,7 +23,6 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import AdminDashboard from "./Pages/AdminDashboard";
-import NewArrivals from "./Components/NewArrivals";
 import ProductsPage from "./Pages/ProductsPage";
 import ProductPage from "./Pages/ProductPage";
 import CategoryPage from "./Pages/CategoryPage";
@@ -50,7 +49,10 @@ const App = () => {
     // Suppress React DevTools console message
     const originalInfo = console.info;
     console.info = (...args) => {
-      if (typeof args[0] === 'string' && args[0].includes('Download the React DevTools')) {
+      if (
+        typeof args[0] === "string" &&
+        args[0].includes("Download the React DevTools")
+      ) {
         return;
       }
       originalInfo(...args);
@@ -83,12 +85,15 @@ const App = () => {
             {/* OPEN THE APP AT category */}
             <Route path="/" element={<Navigate to="/category/men" replace />} />
             <Route
+              path="/home"
+              element={<Navigate to="/category/men" replace />}
+            />
+            <Route
               path="/category"
               element={<Navigate to="/category/men" replace />}
             />
 
             <Route element={<Layout />}>
-              <Route path="/new-arrivals" element={<NewArrivals />} />
               <Route path="/best-sellers" element={<BestSellers />} />
               <Route path="/shipping-returns" element={<ShippingReturns />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -116,10 +121,6 @@ const App = () => {
             />
 
             {/* USER ROUTES */}
-            <Route element={<Layout />}>
-              <Route path="/checkout" element={<CheckoutPage />} />
-            </Route>
-
             <Route
               element={
                 <ErrorBoundary>
@@ -129,6 +130,7 @@ const App = () => {
                 </ErrorBoundary>
               }
             >
+              <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/order-success" element={<OrderSuccessPage />} />
               <Route path="/wishlist" element={<Wishlist />} />

@@ -98,7 +98,7 @@ const setAuthCookie = (res, user) => {
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, confirmPassword, role } = req.body;
+    const { name, email, password, confirmPassword } = req.body;
     const trimmedEmail = email?.trim?.().toLowerCase();
 
     if (!name || !trimmedEmail || !password || !confirmPassword) {
@@ -140,7 +140,7 @@ export const registerUser = async (req, res) => {
       name,
       email: trimmedEmail,
       password: hashedPassword,
-      role: role || 'user',
+      role: 'user',
       authProvider: 'local',
       emailVerified: false,
       emailVerificationCode: hashedVerificationCode,
@@ -264,30 +264,6 @@ export const loginUser = async (req, res) => {
 
     if (!trimmedEmail || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
-    }
-
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@haierah.com').trim().toLowerCase();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-
-    if (trimmedEmail === adminEmail && password === adminPassword) {
-      let adminUser = await User.findOne({ email: adminEmail });
-
-      if (!adminUser) {
-        const hashedPassword = await bcrypt.hash(adminPassword, 10);
-        adminUser = await User.create({
-          name: 'Admin',
-          email: adminEmail,
-          password: hashedPassword,
-          role: 'admin',
-        });
-      }
-
-      setAuthCookie(res, adminUser);
-
-      return res.status(200).json({
-        message: 'Login successful',
-        user: toAuthUserResponse(adminUser),
-      });
     }
 
     const user = await User.findOne({ email: trimmedEmail });

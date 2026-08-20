@@ -24,6 +24,17 @@ const sanitizeUser = (user) => {
   };
 };
 
+const hasActiveAuthSession = () => {
+  if (typeof window === "undefined") return false;
+
+  const hasStoredUser = Boolean(localStorage.getItem("user"));
+  const hasTokenCookie = document.cookie
+    .split("; ")
+    .some((cookie) => cookie.startsWith("token="));
+
+  return hasStoredUser || hasTokenCookie;
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -31,6 +42,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const restoreSession = async () => {
       if (typeof window === "undefined") {
+        setIsAuthReady(true);
+        return;
+      }
+
+      if (!hasActiveAuthSession()) {
+        setUser(null);
+        localStorage.removeItem("user");
         setIsAuthReady(true);
         return;
       }
@@ -73,8 +91,6 @@ export const AuthProvider = ({ children }) => {
     restoreSession();
   }, []);
 
-  const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "admin@haierah.com").trim().toLowerCase();
-  const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || "admin123";
   const loginUrl = buildApiUrl("/api/auth/login");
   const registerUrl = buildApiUrl("/api/auth/register");
 
@@ -92,36 +108,25 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        const fallbackAdminUser =
-          email.trim().toLowerCase() === adminEmail && password === adminPassword
-            ? {
-                id: "local-admin",
-                name: "Admin",
-                email: adminEmail,
-                role: "admin",
-              }
-            : null;
-
-        if (fallbackAdminUser) {
-          setUser(fallbackAdminUser);
-          localStorage.setItem("user", JSON.stringify(fallbackAdminUser));
-          return { success: true, user: fallbackAdminUser };
-        }
-
         return {
           success: false,
           message: data.message || "Login failed",
         };
       }
 
-      const meResponse = await fetch(buildApiUrl("/api/auth/me"), {
-        method: "GET",
-        credentials: "include",
-        headers: { Accept: "application/json" },
-      });
+      let loggedInUser = sanitizeUser(data?.user);
 
-      const meData = meResponse.ok ? await meResponse.json() : null;
-      const loggedInUser = sanitizeUser(meData?.user || data.user);
+      if (!loggedInUser) {
+        const meResponse = await fetch(buildApiUrl("/api/auth/me"), {
+          method: "GET",
+          credentials: "include",
+          headers: { Accept: "application/json" },
+        });
+
+        const meData = meResponse.ok ? await meResponse.json() : null;
+        loggedInUser = sanitizeUser(meData?.user);
+      }
+
       setUser(loggedInUser);
       if (loggedInUser) {
         localStorage.setItem("user", JSON.stringify(loggedInUser));
@@ -134,22 +139,6 @@ export const AuthProvider = ({ children }) => {
         user: loggedInUser,
       };
     } catch {
-      const fallbackAdminUser =
-        email.trim().toLowerCase() === adminEmail && password === adminPassword
-          ? {
-              id: "local-admin",
-              name: "Admin",
-              email: adminEmail,
-              role: "admin",
-            }
-          : null;
-
-      if (fallbackAdminUser) {
-        setUser(fallbackAdminUser);
-        localStorage.setItem("user", JSON.stringify(fallbackAdminUser));
-        return { success: true, user: fallbackAdminUser };
-      }
-
       return {
         success: false,
         message: "Unable to reach authentication server. Please try again.",

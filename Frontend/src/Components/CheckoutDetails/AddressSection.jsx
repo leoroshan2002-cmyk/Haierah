@@ -126,15 +126,15 @@ export default function AddressSection() {
       initial={{ opacity: 0, y: 25 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.5 }}
-      className="border-b p-8"
+      className="border-b p-5 sm:p-8"
     >
       {/* Header */}
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
 
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
 
-          <h2 className="text-3xl font-semibold">
+          <h2 className="text-2xl font-semibold sm:text-3xl">
              Shipping Address
           </h2>
 
@@ -170,17 +170,17 @@ export default function AddressSection() {
             animate={{ opacity: 1, y: 0 }}
             className="mt-8 border rounded-2xl p-6 bg-gray-50"
           >
-            <div className="flex justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
 
-              <div className="flex gap-5">
+              <div className="flex min-w-0 gap-4 sm:gap-5">
 
-                <div className="w-14 h-14 rounded-full bg-[#0d2746] text-white flex items-center justify-center">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#0d2746] text-white sm:h-14 sm:w-14">
                   <MapPin size={24} />
                 </div>
 
                 <div>
 
-                  <h3 className="text-2xl font-semibold">
+                  <h3 className="text-xl font-semibold sm:text-2xl">
                     Home Address
                   </h3>
 
@@ -317,7 +317,7 @@ export default function AddressSection() {
                 </div>
               </div>
 
-              <div className="mt-5 flex justify-end gap-3">
+              <div className="mt-5 flex flex-wrap justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsEditingAddress(false)}

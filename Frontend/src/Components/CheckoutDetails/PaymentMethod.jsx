@@ -69,11 +69,11 @@ export default function PaymentMethod({ selectedMethodValue, onSelectMethod }) {
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="border-b border-gray-200 p-8"
+            className="border-b border-gray-200 p-5 sm:p-8"
         >
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <h2 className="text-3xl font-semibold">Payment Method</h2>
+            <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <h2 className="text-2xl font-semibold sm:text-3xl">Payment Method</h2>
                     <CheckCircle2 size={26} className="text-green-600 fill-green-600" />
                 </div>
 
@@ -91,7 +91,7 @@ export default function PaymentMethod({ selectedMethodValue, onSelectMethod }) {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         transition={{ duration: 0.4 }}
-                        className="grid md:grid-cols-2 gap-5 mt-8"
+                        className="mt-8 grid gap-4 md:grid-cols-2 md:gap-5"
                     >
                         {methods.map((item) => {
                             const Icon = item.icon;
@@ -103,16 +103,16 @@ export default function PaymentMethod({ selectedMethodValue, onSelectMethod }) {
                                     whileHover={{ y: -4 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => handleSelect(item.id)}
-                                    className={`p-5 rounded-3xl border-2 transition-all w-full min-h-[150px] text-left ${
+                                    className={`min-h-[150px] w-full rounded-3xl border-2 p-4 text-left transition-all sm:p-5 ${
                                         selected === item.id
                                             ? "border-[#0d2746] bg-blue-50"
                                             : "border-gray-200 hover:border-[#0d2746]"
                                     }`}
                                 >
-                                    <div className="flex justify-between">
-                                        <div className="flex gap-4">
+                                    <div className="flex justify-between gap-3">
+                                        <div className="flex min-w-0 gap-3 sm:gap-4">
                                             <div
-                                                className={`w-12 h-9 rounded-2xl flex items-center justify-center ${
+                                                className={`flex h-9 w-12 shrink-0 items-center justify-center rounded-2xl ${
                                                     selected === item.id ? "bg-[#0d2746] text-white" : "bg-gray-100"
                                                 }`}
                                             >

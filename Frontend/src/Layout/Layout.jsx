@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 
@@ -10,7 +9,7 @@ export default function Layout() {
     <>
       <Navbar />
 
-      <main className={isHomePage ? "" : "pt-20"}>
+      <main className={isHomePage ? "" : "pt-20 sm:pt-20"}>
         <Outlet />
       </main>
     </>

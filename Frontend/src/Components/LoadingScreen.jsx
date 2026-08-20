@@ -32,7 +32,7 @@ export default function LoadingScreen({ onComplete }) {
           }`}
         >
           <div className="relative">
-            <div className="relative h-72 w-72 md:h-[24rem] md:w-[24rem] lg:h-[30rem] lg:w-[30rem]">
+            <div className="relative h-56 w-56 sm:h-72 sm:w-72 md:h-[24rem] md:w-[24rem] lg:h-[30rem] lg:w-[30rem]">
               <img
                 src={birdLogo}
                 alt="Bird Logo"
@@ -58,7 +58,7 @@ export default function LoadingScreen({ onComplete }) {
           }`}
         >
           <h1
-            className="flex select-none text-6xl font-semibold tracking-[0.30em] text-black md:text-8xl lg:text-9xl"
+            className="flex max-w-full select-none text-4xl font-semibold tracking-[0.18em] text-black sm:text-6xl sm:tracking-[0.30em] md:text-8xl lg:text-9xl"
             style={{
               fontFamily: '"Cormorant Garamond", serif',
             }}
@@ -70,11 +70,11 @@ export default function LoadingScreen({ onComplete }) {
             ))}
           </h1>
 
-          <p className="mt-6 uppercase text-xs tracking-[0.55em] text-neutral-500">
+          <p className="mt-5 uppercase text-[10px] tracking-[0.35em] text-neutral-500 sm:mt-6 sm:text-xs sm:tracking-[0.55em]">
             Luxury Fashion
           </p>
 
-          <div className="mt-8 h-[1px] w-56 overflow-hidden bg-neutral-200">
+          <div className="mt-7 h-[1px] w-40 overflow-hidden bg-neutral-200 sm:mt-8 sm:w-56">
             <div className="h-full w-full bg-black transition-transform duration-700 ease-out" />
           </div>
         </div>

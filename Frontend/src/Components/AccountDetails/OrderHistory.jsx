@@ -95,11 +95,13 @@ export default function OrderHistory() {
     const handleOrdersChanged = () => syncOrdersFromStorage();
 
     window.addEventListener("haierah-order-created", handleOrdersChanged);
+    window.addEventListener("haierah-order-cancelled", handleOrdersChanged);
     window.addEventListener("haierah-order-deleted", handleOrdersChanged);
     window.addEventListener("storage", handleOrdersChanged);
 
     return () => {
       window.removeEventListener("haierah-order-created", handleOrdersChanged);
+      window.removeEventListener("haierah-order-cancelled", handleOrdersChanged);
       window.removeEventListener("haierah-order-deleted", handleOrdersChanged);
       window.removeEventListener("storage", handleOrdersChanged);
     };
@@ -144,6 +146,7 @@ export default function OrderHistory() {
       saveOrders(updatedOrders);
       await refreshOrdersFromBackend();
       if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("haierah-order-cancelled"));
         window.dispatchEvent(new Event("haierah-order-created"));
       }
     } catch (error) {
@@ -179,26 +182,26 @@ export default function OrderHistory() {
 
   return (
 
-    <div className="min-h-screen bg-[#fafafa] pt-28 pb-20">
+    <div className="min-h-full bg-[#fafafa] py-8 md:pt-28 md:pb-20">
 
-      <div className="max-w-7xl mx-auto px-8">
+      <div className="mx-auto max-w-7xl px-0 sm:px-2 md:px-8">
 
-        <h1 className="text-5xl font-light mb-10">
+        <h1 className="mb-7 text-4xl font-light sm:text-5xl md:mb-10">
           My Orders
         </h1>
 
         {/* SEARCH + FILTER */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="mb-8 flex flex-col items-stretch gap-4 md:flex-row md:items-center md:justify-between">
 
           <input
             type="text"
             placeholder="Search all orders"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-[420px] border rounded-lg px-5 py-3 outline-none"
+            className="w-full rounded-lg border px-4 py-3 outline-none md:w-[420px] md:px-5"
           />
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
 
             <button
               onClick={() => setFilter("All")}

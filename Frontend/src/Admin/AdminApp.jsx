@@ -11,11 +11,13 @@ export default function AdminApp() {
     notifications,
     showNotifDrawer,
     toast,
+    user,
     setCurrentTab,
     setSidebarCollapsed,
     setIsAdminLoggedIn,
     setShowNotifDrawer,
     handleSimulateSale,
+    handleLogout,
     renderViewContent,
     markNotificationsRead
   } = useAdminController();
@@ -37,6 +39,9 @@ export default function AdminApp() {
       onMarkNotificationsRead={markNotificationsRead}
       viewContent={renderViewContent()}
       toast={toast}
+      user={user}
+      onLogout={handleLogout}
+      onSelectProfile={() => setCurrentTab('profile')}
     />
   );
 }

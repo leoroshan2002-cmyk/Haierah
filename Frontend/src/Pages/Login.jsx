@@ -7,9 +7,7 @@ import { consumePendingAuthAction } from "../utils/authActionUtils";
 import { renderGoogleButton } from "../utils/googleAuth";
 import { buildApiUrl } from "../services/api";
 import { motion } from "framer-motion";
-import PageBack from "../Components/CommonDetails/PageBack";
 import loginImage from "../assets/login.jpg";
-import HairaLogo from "../assets/HairaLogo.png";
 import Logotransparent from "../assets/HaierahLogoTransparent.png";
 export default function Login() {
   const navigate = useNavigate();
@@ -27,7 +25,11 @@ export default function Login() {
 
     const fallbackDestination = location.state?.from?.pathname || "/";
     const destination = fallbackDestination === "/login" || fallbackDestination === "/register" ? "/" : fallbackDestination;
-    navigate(destination, { replace: true });
+    if (user.role === "admin") {
+      navigate("/admin", { replace: true });
+    } else {
+      navigate(destination, { replace: true });
+    }
   }, [isAuthReady, user, location.state, navigate]);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function Login() {
         });
 
         const contentType = result.headers.get('content-type') || '';
-        let data = {};
+        let data;
 
         if (contentType.includes('application/json')) {
           data = await result.json();
@@ -78,7 +80,11 @@ export default function Login() {
         localStorage.setItem('user', JSON.stringify(nextUser));
 
         const destination = location.state?.from?.pathname || '/';
-        navigate(destination, { replace: true });
+        if (nextUser?.role === 'admin') {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate(destination === '/login' || destination === '/register' ? '/' : destination, { replace: true });
+        }
       },
       onError: (message) => {
         alert(message || 'Google sign-in failed.');
@@ -128,7 +134,7 @@ export default function Login() {
   };
 
   return (
-   <div className="min-h-screen grid lg:grid-cols-2 bg-gradient-to-r from-black via-gray-900 to-black relative">
+  <div className="min-h-[100dvh] grid lg:grid-cols-2 bg-gradient-to-r from-black via-gray-900 to-black relative">
         
       
       {/* TOP RIGHT */}
@@ -176,20 +182,20 @@ export default function Login() {
       </div>
 
       {/* RIGHT SIDE FORM */}
-      <div className="flex items-center justify-center px-8 py-10 bg-white ">
+      <div className="flex min-w-0 items-center justify-center px-4 py-6 sm:px-8 sm:py-10 bg-white">
 
         <motion.form
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
           onSubmit={handleSubmit}
-          className="bg-white/70 backdrop-blur-2xl rounded-3xl shadow-2xl p-12 w-full max-w-md border border-white/30"
+          className="w-full max-w-md rounded-2xl sm:rounded-3xl border border-white/30 bg-white/70 p-6 shadow-2xl backdrop-blur-2xl sm:p-10 md:p-12"
          >
-          <h1 className="text-5xl font-serif text-center text-black">
+          <h1 className="text-center font-serif text-4xl text-black sm:text-5xl">
             HAIERAH
           </h1>
 
-          <p className="text-center text-gray-500 uppercase tracking-[4px] mt-3 mb-10">
+          <p className="mt-3 mb-8 text-center text-xs uppercase tracking-[2px] text-gray-500 sm:mb-10 sm:text-base sm:tracking-[4px]">
             Welcome Back
           </p>
 
@@ -198,7 +204,7 @@ export default function Login() {
             type="email"
             autoComplete="email"
             placeholder="Email"
-            className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-5 outline-none focus:ring-2 focus:ring-black"
+            className="mb-4 w-full rounded-xl border border-gray-300 px-4 py-3.5 outline-none focus:ring-2 focus:ring-black sm:mb-5 sm:px-5 sm:py-4"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -209,7 +215,7 @@ export default function Login() {
             type="password"
             autoComplete="current-password"
             placeholder="Password"
-            className="w-full border border-gray-300 rounded-xl px-5 py-4 mb-3 outline-none focus:ring-2 focus:ring-black"
+            className="mb-3 w-full rounded-xl border border-gray-300 px-4 py-3.5 outline-none focus:ring-2 focus:ring-black sm:px-5 sm:py-4"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -233,18 +239,18 @@ export default function Login() {
             Sign In
           </button>
 
-          <div className="mt-4 w-full">
-            <div ref={googleButtonRef} className="w-full flex justify-center" />
+          <div className="mt-4 w-full max-w-full overflow-hidden">
+            <div ref={googleButtonRef} className="flex w-full justify-center" />
           </div>
 
          
             
           {/* REGISTER LINK */}
-          <p className="text-center mt-8 text-gray-600">
+          <p className="mt-6 text-center text-sm text-gray-600 sm:mt-8 sm:text-base">
             Don't have an account?
             <Link
               to="/register"
-              className="ml-2 font-semibold text-black hover:underline"
+              className="ml-1 font-semibold text-black hover:underline sm:ml-2"
             >
               Register
             </Link>

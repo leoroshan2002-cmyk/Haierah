@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { apiClient } from '../../services/api';
+import { apiClient, invalidateProductCache } from '../../services/api';
 import { loadInitialState, saveState } from '../utils/store.js';
 import { notifyCatalogChanged } from '../../utils/catalogSync.js';
 import { normalizeImageList } from '../../utils/productImages.js';
@@ -9,6 +9,7 @@ import { DashboardView } from '../components/DashboardView.jsx';
 import { ProductsView } from '../components/ProductsView.jsx';
 import { OrdersView } from '../components/OrdersView.jsx';
 import { CMSView } from '../components/CMSView.jsx';
+import { AdminProfileView } from '../components/AdminProfileView.jsx';
 import {
   CategoriesView,
   CustomersView,
@@ -19,7 +20,7 @@ import {
 } from '../components/OtherViews.jsx';
 
 export function useAdminController() {
-  const { user, isAuthReady } = useAuth();
+  const { user, isAuthReady, logout } = useAuth();
   const [state, setState] = useState(() => loadInitialState());
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -178,6 +179,7 @@ export function useAdminController() {
 
     if (typeof window !== 'undefined') {
       window.addEventListener('haierah-order-created', handleOrderChange);
+      window.addEventListener('haierah-order-cancelled', handleOrderChange);
       window.addEventListener('haierah-order-deleted', handleOrderChange);
       window.addEventListener('storage', handleOrderChange);
     }
@@ -186,6 +188,7 @@ export function useAdminController() {
       isMounted = false;
       if (typeof window !== 'undefined') {
         window.removeEventListener('haierah-order-created', handleOrderChange);
+        window.removeEventListener('haierah-order-cancelled', handleOrderChange);
         window.removeEventListener('haierah-order-deleted', handleOrderChange);
         window.removeEventListener('storage', handleOrderChange);
       }
@@ -458,6 +461,12 @@ export function useAdminController() {
         orders: prev.orders.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
       }));
 
+      if (String(updatedOrder?.status || '').toLowerCase() === 'cancelled' || String(payload?.status || '').toLowerCase() === 'cancelled') {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('haierah-order-cancelled'));
+        }
+      }
+
       addNotification(`Order updated successfully.`);
       triggerToast(`Order updated successfully.`);
       return updatedOrder;
@@ -582,6 +591,11 @@ export function useAdminController() {
         }
       }
     }));
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setIsAdminLoggedIn(false);
   };
 
   const handleSimulateSale = async () => {
@@ -716,6 +730,8 @@ export function useAdminController() {
         return <AnalyticsView products={state.products} orders={state.orders} customers={state.customers} />;
       case 'settings':
         return <SettingsView settings={state.settings} onUpdateSettings={handleUpdateSettings} />;
+      case 'profile':
+        return <AdminProfileView />;
       default:
         return <div className="p-8 text-center text-slate-500 font-bold">Workspace View Commits Failed.</div>;
     }
@@ -729,12 +745,14 @@ export function useAdminController() {
     notifications,
     showNotifDrawer,
     toast,
+    user,
     setCurrentTab,
     setSidebarCollapsed,
     setIsAdminLoggedIn,
     setShowNotifDrawer,
     setNotifications,
     handleSimulateSale,
+    handleLogout,
     renderViewContent,
     markNotificationsRead: () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
   };

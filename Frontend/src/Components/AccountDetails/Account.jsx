@@ -24,7 +24,7 @@ export default function Account() {
   };
 
   return (
-    <div className="bg-[#FCFAF8]">
+    <div className="min-h-[calc(100dvh-80px)] bg-[#FCFAF8]">
       {/* Fixed Sidebar */}
       <Sidebar
         activepage={activePage}
@@ -32,7 +32,7 @@ export default function Account() {
       />
 
       {/* Right Content */}
-      <main className="ml-[270px] h-[calc(100vh-80px)] overflow-y-auto px-16">
+      <main className="ml-0 min-w-0 px-4 pb-8 sm:px-6 md:ml-[270px] md:h-[calc(100vh-80px)] md:overflow-y-auto md:px-10 lg:px-16">
         {renderPage()}
       </main>
     </div>

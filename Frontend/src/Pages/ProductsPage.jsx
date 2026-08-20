@@ -17,14 +17,19 @@ export default function ProductsPage() {
     const location = useLocation();
     const [search, setSearch] = useState("");
     const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const queryParams = new URLSearchParams(location.search);
     const categoryFilter = queryParams.get("category") || "";
     const searchFilter = queryParams.get("search") || "";
 
     useEffect(() => {
+        let cancelled = false;
+        setLoading(true);
         const loadProducts = async () => {
             const response = await fetchProducts();
+            if (cancelled) return;
             setProducts(response);
+            setLoading(false);
         };
 
         loadProducts();
@@ -41,6 +46,7 @@ export default function ProductsPage() {
         const unsubscribeCatalog = subscribeToCatalogChanges(handleInventoryChange);
 
         return () => {
+            cancelled = true;
             unsubscribeCatalog();
             if (typeof window !== 'undefined') {
                 window.removeEventListener('haierah-products-updated', handleInventoryChange);
@@ -66,6 +72,31 @@ export default function ProductsPage() {
         addToCart(product);
     };
     const { toggleWishlist } = useWishlist();
+
+    if (loading) {
+        return (
+            <div className="relative h-full max-w-7xl w-full mx-auto px-6 py-20 bg-[#f8f7f5]">
+                <div className="mb-6">
+                    <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
+                </div>
+                <div className="flex items-center justify-between mb-8">
+                    <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
+                </div>
+                <div className="grid md:grid-cols-4 gap-8">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100">
+                            <div className="aspect-[3/4] bg-gray-200 animate-pulse" />
+                            <div className="p-4 space-y-3">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                                <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
+                                <div className="h-5 bg-gray-200 rounded animate-pulse w-1/3" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <motion.div

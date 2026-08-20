@@ -55,26 +55,69 @@ const categoriesUrl = buildApiUrl('/api/categories');
 const productsUrl = buildApiUrl('/api/products');
 const campaignsUrl = buildApiUrl('/api/campaigns');
 
+const createCache = (ttlMs = 30_000) => {
+  let cached = null;
+  let lastFetch = 0;
+  let inflight = null;
+
+  const isStale = () => !cached || Date.now() - lastFetch > ttlMs;
+
+  return {
+    get() { return cached; },
+    async fetch(fetcher) {
+      if (!isStale() && cached) return cached;
+      if (inflight) return inflight;
+
+      inflight = (async () => {
+        try {
+          const result = await fetcher();
+          cached = result;
+          lastFetch = Date.now();
+          return result;
+        } finally {
+          inflight = null;
+        }
+      })();
+
+      return inflight;
+    },
+    invalidate() {
+      cached = null;
+      lastFetch = 0;
+    },
+  };
+};
+
+const categoriesCache = createCache(60_000);
+const productsCache = createCache(30_000);
+
 export const fetchCategories = async () => {
   try {
-    const { data } = await apiClient.get(categoriesUrl);
-    return Array.isArray(data?.categories) ? data.categories : [];
+    return await categoriesCache.fetch(async () => {
+      const { data } = await apiClient.get(categoriesUrl);
+      return Array.isArray(data?.categories) ? data.categories : [];
+    });
   } catch (error) {
     console.error('Failed to fetch categories:', error);
-    return [];
+    return categoriesCache.get() || [];
   }
 };
 
 export const fetchProducts = async () => {
   try {
-    const { data } = await apiClient.get(productsUrl);
-    const products = Array.isArray(data?.products) ? data.products : [];
-    return products.map((product) => sanitizeProductForClient(product));
+    return await productsCache.fetch(async () => {
+      const { data } = await apiClient.get(productsUrl);
+      const products = Array.isArray(data?.products) ? data.products : [];
+      return products.map((product) => sanitizeProductForClient(product));
+    });
   } catch (error) {
     console.error('Failed to fetch products:', error);
-    return [];
+    return productsCache.get() || [];
   }
 };
+
+export const invalidateProductCache = () => productsCache.invalidate();
+export const invalidateCategoryCache = () => categoriesCache.invalidate();
 
 export const fetchProductById = async (id) => {
   try {

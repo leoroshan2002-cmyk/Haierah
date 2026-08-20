@@ -10,12 +10,12 @@ import { useCart } from "../Context/CartContext";
 import { useAuth } from "../Context/AuthContext";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiClient, buildApiUrl } from "../services/api";
+import { apiClient, buildApiUrl, invalidateProductCache } from "../services/api";
 import { toast } from "react-toastify";
 import { evaluateCoupon } from "../utils/couponUtils";
 import { PAYMENT_METHODS } from "./CheckoutDetails/PaymentMethod";
 
-export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery", onPaymentError, onOrderComplete }) {
+export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery", selectedDelivery, onPaymentError, onOrderComplete }) {
     const [showSuccess, setShowSuccess] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [orderStatusMessage, setOrderStatusMessage] = useState("");
@@ -34,24 +34,29 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
     );
 
     const shipping = subtotal > 0 ? 0 : 0;
+    const deliveryCost = (() => {
+        if (!selectedDelivery || selectedDelivery.price === "FREE") return 0;
+        const match = String(selectedDelivery.price).replace(/[^0-9.]/g, "");
+        return Number(match) || 0;
+    })();
     const tax = subtotal * 0.05;
     const couponResult = useMemo(() => {
         if (!appliedCoupon) {
-            return { discountAmount: 0, finalTotal: subtotal + shipping + tax };
+            return { discountAmount: 0, finalTotal: subtotal + shipping + deliveryCost + tax };
         }
 
         const result = evaluateCoupon(appliedCoupon, subtotal);
         return {
             ...result,
-            finalTotal: Number((subtotal - result.discountAmount + shipping + tax).toFixed(2)),
+            finalTotal: Number((subtotal - result.discountAmount + shipping + deliveryCost + tax).toFixed(2)),
         };
-    }, [appliedCoupon, subtotal, shipping, tax]);
+    }, [appliedCoupon, subtotal, shipping, deliveryCost, tax]);
     const total = couponResult.finalTotal;
 
     const handleApplyCoupon = () => {
         const normalizedCode = String(couponCode || '').trim().toUpperCase();
         const storedCouponsPayload = localStorage.getItem('hyra_shopify_admin_coupons');
-        let storedCoupons = [];
+        let storedCoupons;
 
         if (storedCouponsPayload) {
             storedCoupons = JSON.parse(storedCouponsPayload);
@@ -173,6 +178,11 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                 partner: "Blue Dart",
                 tracking: "Tracking soon",
             },
+            delivery: {
+                method: selectedDelivery?.title || "Standard Delivery",
+                time: selectedDelivery?.time || "3 - 5 Business Days",
+                cost: deliveryCost,
+            },
         };
     };
 
@@ -206,12 +216,14 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                     shippingAddress: orderPayload.shippingAddress,
                     customerPhone: orderPayload.customer?.phone,
                     customerAddressText: orderPayload.customer?.address,
+                    delivery: orderPayload.delivery,
                 });
 
                 const existingOrders = JSON.parse(localStorage.getItem("userOrders") || "[]");
                 localStorage.setItem("userOrders", JSON.stringify([orderPayload, ...existingOrders]));
 
                 if (typeof window !== "undefined") {
+                    invalidateProductCache();
                     window.dispatchEvent(new Event("haierah-order-created"));
                     window.dispatchEvent(new Event("haierah-products-updated"));
                 }
@@ -259,6 +271,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                             const existingOrders = JSON.parse(localStorage.getItem("userOrders") || "[]");
                             localStorage.setItem("userOrders", JSON.stringify([{ ...orderPayload, paymentStatus: "Paid", paymentMethod: "Razorpay", payment: { ...orderPayload.payment, method: "Razorpay", status: "Paid", transaction: response.razorpay_payment_id }, razorpayOrderId: response.razorpay_order_id, razorpayPaymentId: response.razorpay_payment_id, razorpaySignature: response.razorpay_signature, transactionId: response.razorpay_payment_id }, ...existingOrders]));
                             if (typeof window !== "undefined") {
+                                invalidateProductCache();
                                 window.dispatchEvent(new Event("haierah-order-created"));
                                 window.dispatchEvent(new Event("haierah-products-updated"));
                             }
@@ -329,11 +342,11 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: .6 }}
-            className="bg-white rounded-3xl shadow-lg p-8 sticky top-24 w-[350px]"
+            className="w-full rounded-3xl bg-white p-5 shadow-lg sm:p-8 lg:sticky lg:top-24"
         >
             {/* Heading */}
 
-            <h2 className="text-4xl font-serif font-bold mb-8">
+            <h2 className="mb-6 text-3xl font-serif font-bold sm:mb-8 sm:text-4xl">
                 Order Summary
             </h2>
 
@@ -346,19 +359,19 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                     </div>
                 ) : (
                     cart.map((item) => (
-                        <div key={item.id} className="flex gap-4 items-center">
+                        <div key={item.id} className="flex min-w-0 items-center gap-3 sm:gap-4">
                             <img
                                 src={item.image}
                                 alt={item.name}
-                                className="w-20 h-20 rounded-2xl object-cover"
+                                className="h-16 w-16 shrink-0 rounded-2xl object-cover sm:h-20 sm:w-20"
                             />
 
-                            <div className="flex-1">
-                                <h3 className="font-semibold">{item.name}</h3>
+                            <div className="min-w-0 flex-1">
+                                <h3 className="break-words font-semibold">{item.name}</h3>
                                 <p className="text-gray-500 text-sm">Qty : {item.qty}</p>
                             </div>
 
-                            <span className="font-semibold">₹{(Number(item.price) || 0).toFixed(2)}</span>
+                            <span className="shrink-0 text-sm font-semibold sm:text-base">₹{(Number(item.price) || 0).toFixed(2)}</span>
                         </div>
                     ))
                 )}
@@ -374,18 +387,18 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                     Promo Code
                 </label>
 
-                <div className="flex mt-3">
+                <div className="mt-3 flex min-w-0">
 
                     <input
                         placeholder="Enter Code"
                         value={couponCode}
                         onChange={(e) => setCouponCode(e.target.value)}
-                        className="flex-1 border rounded-l-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-[#0d2746]"
+                        className="min-w-0 flex-1 rounded-l-2xl border px-3 py-3 outline-none focus:ring-2 focus:ring-[#0d2746] sm:px-4"
                     />
 
                     <button
                         onClick={handleApplyCoupon}
-                        className="bg-[#0d2746] text-white px-6 rounded-r-2xl hover:bg-black duration-300"
+                        className="rounded-r-2xl bg-[#0d2746] px-4 text-sm text-white duration-300 hover:bg-black sm:px-6"
                     >
                         Apply
                     </button>
@@ -398,7 +411,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
 
             <div className="mt-8 space-y-4">
 
-                <div className="flex justify-between">
+                <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
                     <span className="text-gray-500">
                         Subtotal
                     </span>
@@ -408,7 +421,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                     </span>
                 </div>
 
-                <div className="flex justify-between">
+                <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
 
                     <span className="flex items-center gap-2 text-gray-500">
 
@@ -424,7 +437,17 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
 
                 </div>
 
-                <div className="flex justify-between">
+                {deliveryCost > 0 && (
+                    <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
+                        <span className="flex items-center gap-2 text-gray-500">
+                            <Truck size={18} />
+                            Delivery ({selectedDelivery?.title})
+                        </span>
+                        <span>₹{deliveryCost.toFixed(2)}</span>
+                    </div>
+                )}
+
+                <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
 
                     <span>
                         Tax
@@ -437,7 +460,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                 </div>
 
                 {couponResult.discountAmount > 0 && (
-                    <div className="flex justify-between text-green-600">
+                    <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 text-green-600">
                         <span>Coupon Discount</span>
                         <span>-₹{couponResult.discountAmount.toFixed(2)}</span>
                     </div>
@@ -455,13 +478,13 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
 
             {/* Total */}
 
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between gap-4">
 
-                <span className="text-2xl font-semibold">
+                <span className="text-xl font-semibold sm:text-2xl">
                     Total
                 </span>
 
-                <span className="text-3xl font-bold">
+                <span className="text-2xl font-bold sm:text-3xl">
                     ₹{total.toFixed(2)}
                 </span>
 
@@ -539,7 +562,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                                 stiffness: 180,
                                 damping: 15,
                             }}
-                            className="bg-white rounded-3xl p-10 w-[420px] text-center shadow-2xl"
+                            className="w-[calc(100vw-2rem)] max-w-[420px] rounded-3xl bg-white p-6 text-center shadow-2xl sm:p-10"
                         >
                             <motion.div
                                 initial={{ scale: 0 }}

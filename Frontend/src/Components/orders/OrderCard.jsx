@@ -78,18 +78,18 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
     <div className="bg-white rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden mb-8">
 
       {/* HEADER */}
-      <div className="bg-gray-50 border-b px-8 py-5 flex justify-between items-center">
+      <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-4 sm:px-6 sm:py-5 md:px-8">
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-14 w-full">
+        <div className="grid w-full grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4 md:gap-14">
 
           <div>
             <p className="text-xs uppercase text-gray-500">Order Placed</p>
-            <p className="font-semibold mt-1">{order.date || new Date(order.createdAt || Date.now()).toLocaleDateString()}</p>
+            <p className="mt-1 font-semibold">{order.date || new Date(order.createdAt || Date.now()).toLocaleDateString()}</p>
           </div>
 
           <div>
             <p className="text-xs uppercase text-gray-500">Total</p>
-            <p className="font-semibold mt-1">₹{order.total}</p>
+            <p className="mt-1 font-semibold">₹{order.total}</p>
           </div>
 
           <div>
@@ -113,7 +113,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
 
           <div>
             <p className="text-xs uppercase text-gray-500">Order ID</p>
-            <p className="font-semibold mt-1">{order.id || order.orderId}</p>
+            <p className="mt-1 break-all font-semibold">{order.id || order.orderId}</p>
           </div>
 
         </div>
@@ -123,24 +123,24 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
       {order.items.map((item) => (
         <div
           key={item.id || item.name}
-          className="flex justify-between items-center px-8 py-8 border-b"
+          className="flex flex-col items-stretch gap-6 border-b px-4 py-6 sm:px-6 md:flex-row md:items-center md:justify-between md:px-8 md:py-8"
         >
 
           {/* LEFT */}
-          <div className="flex gap-6">
+          <div className="flex min-w-0 gap-4 sm:gap-6">
 
             <img
               src={resolveImageUrl(item.image)}
               alt={item.name}
-              className="w-32 h-36 rounded-xl border object-cover"
+              className="h-28 w-24 shrink-0 rounded-xl border object-cover sm:h-36 sm:w-32"
               onError={(e) => {
                 e.currentTarget.src = "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80";
               }}
             />
 
-            <div>
+            <div className="min-w-0">
 
-              <h2 className="text-xl font-semibold">{item.name}</h2>
+              <h2 className="break-words text-lg font-semibold sm:text-xl">{item.name}</h2>
 
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-yellow-500 text-lg">★★★★★</span>
@@ -189,10 +189,10 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
           </div>
 
           {/* RIGHT */}
-          <div className="flex flex-col gap-3 w-44">
+          <div className="grid w-full grid-cols-2 gap-2 sm:gap-3 md:w-44 md:grid-cols-1">
             <button
               onClick={handleBuyAgain}
-              className="border rounded-lg py-3 hover:bg-black hover:text-white transition"
+              className="rounded-lg border px-2 py-3 text-sm transition hover:bg-black hover:text-white sm:text-base"
             >
               Buy Again
             </button>
@@ -202,21 +202,21 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
                 timelineRef.current?.scrollIntoView({ behavior: "smooth" });
                 setFeedback("Tracking details opened below.");
               }}
-              className="border rounded-lg py-3 hover:bg-black hover:text-white transition"
+              className="rounded-lg border px-2 py-3 text-sm transition hover:bg-black hover:text-white sm:text-base"
             >
               Track Package
             </button>
 
             <button
               onClick={handleDownloadInvoice}
-              className="border rounded-lg py-3 hover:bg-black hover:text-white transition"
+              className="rounded-lg border px-2 py-3 text-sm transition hover:bg-black hover:text-white sm:text-base"
             >
               Download Invoice
             </button>
 
             <button
               onClick={handleNeedHelp}
-              className="border rounded-lg py-3 hover:bg-black hover:text-white transition"
+              className="rounded-lg border px-2 py-3 text-sm transition hover:bg-black hover:text-white sm:text-base"
             >
               Need Help
             </button>
@@ -225,7 +225,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
         </div>
       ))}
             {/* VIEW DETAILS BUTTON */}
-      <div className="px-8 py-5 border-b flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-3 border-b px-4 py-5 sm:px-8">
         <div className="flex flex-wrap items-center justify-center gap-3">
           <select
             value={selectedStatus}
@@ -274,13 +274,13 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
 
       {showDetails && (
 
-        <div className="bg-[#fafafa] border-t p-8">
+        <div className="border-t bg-[#fafafa] p-4 sm:p-6 md:p-8">
 
           <div className="grid lg:grid-cols-2 gap-8">
 
 
             {/* Shipping */}
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
               <h3 className="text-lg font-semibold mb-5">Shipping Address</h3>
               <p className="font-semibold">{order.shippingAddress?.fullName || order.customer?.name || order.customerName || "Customer"}</p>
               <p className="text-gray-600 mt-1">{order.shippingAddress?.phone || order.customer?.phone || order.customerPhone || "Phone not available"}</p>
@@ -290,7 +290,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
 
 
             {/* Payment */}
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
 
               <h3 className="text-lg font-semibold mb-5">
                  Payment Information
@@ -326,7 +326,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
                     Transaction ID
                   </span>
 
-                  <span className="font-medium">
+                  <span className="max-w-full break-all text-right font-medium">
                     {order.transactionId || order.payment?.transaction || order.razorpayPaymentId || "Pending"}
                   </span>
                 </div>
@@ -334,14 +334,14 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
                 {order.razorpayPaymentId ? (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Razorpay Payment ID</span>
-                    <span className="font-medium text-right">{order.razorpayPaymentId}</span>
+                    <span className="max-w-full break-all text-right font-medium">{order.razorpayPaymentId}</span>
                   </div>
                 ) : null}
 
                 {order.razorpayOrderId ? (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Razorpay Order ID</span>
-                    <span className="font-medium text-right">{order.razorpayOrderId}</span>
+                    <span className="max-w-full break-all text-right font-medium">{order.razorpayOrderId}</span>
                   </div>
                 ) : null}
 
@@ -355,7 +355,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
 
             {/* Courier */}
 
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
 
               <h3 className="text-lg font-semibold mb-5">
                  Courier Details
@@ -372,7 +372,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
 
                 <div className="flex justify-between">
                   <span className="text-gray-500">Tracking No.</span>
-                  <span className="font-medium">{order.trackingNumber || "Generating..."}</span>
+                  <span className="max-w-full break-all text-right font-medium">{order.trackingNumber || "Generating..."}</span>
                 </div>
 
                 <div className="flex justify-between">
@@ -391,7 +391,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
 
             {/* Summary */}
 
-            <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="rounded-xl border bg-white p-4 shadow-sm sm:p-6">
 
 
               <h3 className="text-lg font-semibold mb-5">
