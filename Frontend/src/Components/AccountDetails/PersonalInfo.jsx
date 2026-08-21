@@ -190,11 +190,18 @@ export default function PersonalInfo() {
 
                     {/* PROFILE IMAGE */}
                     <div className="relative shrink-0">
-                        <img
-                            src={avatarPreview || "https://i.pravatar.cc/300"}
-                            alt="Profile"
-                            className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-[6px] border-[#E5DFDA]"
-                        />
+                        {avatarPreview ? (
+                          <img
+                              src={avatarPreview}
+                              alt="Profile"
+                              className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-[6px] border-[#E5DFDA]"
+                          />
+                        ) : (
+                          <div
+                            aria-label="No profile image"
+                            className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] border-[#E5DFDA] bg-white"
+                          />
+                        )}
 
                         {isEditing && (
                           <button

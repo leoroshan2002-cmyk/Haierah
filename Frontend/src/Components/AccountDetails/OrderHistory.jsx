@@ -107,22 +107,6 @@ export default function OrderHistory() {
     };
   }, []);
 
-  const handleUpdateOrder = async (orderId, nextStatus) => {
-    try {
-      const { data } = await apiClient.patch(buildApiUrl(`/api/orders/${encodeURIComponent(orderId)}/status`), { status: nextStatus });
-      const updatedOrders = orders.map((order) => {
-        const currentId = String(order.id || order.orderId || order._id || "");
-        return currentId === String(orderId) ? normalizeOrder({ ...order, ...data.order }) : order;
-      });
-
-      saveOrders(updatedOrders);
-      await refreshOrdersFromBackend();
-    } catch (error) {
-      console.error("Failed to update order status", error);
-      alert(error?.response?.data?.message || "Unable to update order status.");
-    }
-  };
-
   const handleCancelOrder = async (orderId) => {
     const normalizedId = String(orderId || "").trim();
     if (!normalizedId) return;
@@ -226,17 +210,6 @@ export default function OrderHistory() {
             </button>
 
             <button
-              onClick={() => setFilter("Processing")}
-              className={`px-5 py-2 rounded-full ${
-                filter === "Processing"
-                  ? "bg-black text-white"
-                  : "border"
-              }`}
-            >
-              Processing
-            </button>
-
-            <button
               onClick={() => setFilter("Cancelled")}
               className={`px-5 py-2 rounded-full ${
                 filter === "Cancelled"
@@ -257,7 +230,6 @@ export default function OrderHistory() {
             <OrderCard
               key={order.id || order.orderId || order._id}
               order={order}
-              onUpdateOrder={handleUpdateOrder}
               onCancelOrder={handleCancelOrder}
             />
           ))

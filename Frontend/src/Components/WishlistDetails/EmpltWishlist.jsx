@@ -186,7 +186,7 @@ export default function EmptyWishlist() {
 
        
 
-        <Link to="/new-arrivals">
+        <Link to="/category/new-arraival">
 
           <motion.button
             whileHover={{

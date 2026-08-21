@@ -3,15 +3,45 @@ import { useNavigate } from "react-router-dom";
 import TrackingTimeline from "./TrackingTimeline";
 import { resolveBackendImageUrl } from "../../services/api";
 
-export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCancelOrder }) {
+const escapeHtml = (value) => String(value ?? "")
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#039;");
+
+export default function OrderCard({ order, onDeleteOrder, onCancelOrder }) {
   const timelineRef = useRef(null);
   const navigate = useNavigate();
   const [showDetails, setShowDetails] = useState(false);
+  const [shouldScrollToTracking, setShouldScrollToTracking] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState(order?.status || "Processing");
+
+  useEffect(() => {
+    if (!showDetails || !shouldScrollToTracking) return;
+
+    timelineRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setShouldScrollToTracking(false);
+  }, [showDetails, shouldScrollToTracking]);
+
   if (!order || !order.items) return null;
 
   const resolveImageUrl = (image) => resolveBackendImageUrl(image);
+
+  const getItemQuantity = (item) => Number(item.quantity ?? item.qty ?? 1) || 1;
+  const getItemUnitPrice = (item) => Number(item.price ?? 0) || 0;
+  const getItemTotal = (item) => getItemUnitPrice(item) * getItemQuantity(item);
+  const itemSubtotal = order.items.reduce((sum, item) => sum + getItemTotal(item), 0);
+  const itemCount = order.items.reduce((sum, item) => sum + getItemQuantity(item), 0);
+  const orderSubtotal = Number(order.subtotal) > 0 ? Number(order.subtotal) : itemSubtotal;
+  const orderTotal = Number(order.total ?? 0) || 0;
+  const couponDiscount = Number(order.couponDiscount ?? 0) || 0;
+  const deliveryCost = Number(order.deliveryCost ?? 0) || 0;
+  const shippingCost = Number(order.shipping ?? 0) || 0;
+  const savedTax = Number(order.tax ?? 0) || 0;
+  const orderTax = savedTax > 0
+    ? savedTax
+    : Math.max(0, orderTotal - orderSubtotal + couponDiscount - deliveryCost - shippingCost);
 
   const handleBuyAgain = () => {
     navigate("/products");
@@ -39,17 +69,91 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
   };
 
   const handleDownloadInvoice = () => {
-    setFeedback("Invoice download will be available soon for this order.");
+    const invoiceWindow = window.open("", "_blank", "width=900,height=1000");
+    if (!invoiceWindow) {
+      setFeedback("Please allow pop-ups to download your invoice.");
+      return;
+    }
+
+    const customerName = order.shippingAddress?.fullName || order.customerName || "Customer";
+    const customerEmail = order.customerEmail || "Not provided";
+    const orderDate = order.date || new Date(order.createdAt || Date.now()).toLocaleDateString();
+    const orderId = order.id || order.orderId || order._id || "N/A";
+    const itemRows = order.items.map((item) => `
+      <tr>
+        <td>${escapeHtml(item.name || "Product")}</td>
+        <td class="center">${getItemQuantity(item)}</td>
+        <td class="right">₹${getItemUnitPrice(item).toFixed(2)}</td>
+        <td class="right">₹${getItemTotal(item).toFixed(2)}</td>
+      </tr>
+    `).join("");
+
+    invoiceWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <title>Invoice ${escapeHtml(orderId)}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; background: #f3f4f6; color: #172033; font: 14px Arial, sans-serif; }
+            .invoice { width: 210mm; min-height: 297mm; margin: 24px auto; padding: 22mm 18mm; background: white; }
+            .top { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #0d2746; padding-bottom: 22px; }
+            .brand { color: #0d2746; font-size: 30px; font-weight: 800; letter-spacing: 3px; }
+            .label { color: #6b7280; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+            h1 { margin: 0; color: #0d2746; font-size: 28px; letter-spacing: 2px; }
+            .meta { margin-top: 10px; color: #4b5563; line-height: 1.8; text-align: right; }
+            .addresses { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin: 42px 0; }
+            .address { line-height: 1.8; }
+            .address strong { display: block; margin-bottom: 5px; color: #0d2746; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+            table { width: 100%; border-collapse: collapse; }
+            th { background: #0d2746; color: white; font-size: 11px; letter-spacing: .5px; text-align: left; text-transform: uppercase; }
+            th, td { border: 1px solid #d1d5db; padding: 12px 10px; }
+            .center { text-align: center; }
+            .right { text-align: right; }
+            .summary { width: 290px; margin: 28px 0 0 auto; }
+            .summary div { display: flex; justify-content: space-between; padding: 8px 0; }
+            .summary .total { border-top: 2px solid #0d2746; color: #0d2746; font-size: 18px; font-weight: 800; margin-top: 8px; padding-top: 14px; }
+            .footer { margin-top: 70px; border-top: 1px solid #d1d5db; padding-top: 18px; color: #6b7280; text-align: center; }
+            @media print { body { background: white; } .invoice { width: auto; min-height: auto; margin: 0; padding: 12mm; } }
+          </style>
+        </head>
+        <body>
+          <main class="invoice">
+            <header class="top">
+              <div class="brand">HAIERAH</div>
+              <div><h1>INVOICE</h1><div class="meta">Invoice #: ${escapeHtml(orderId)}<br>Issue Date: ${escapeHtml(orderDate)}</div></div>
+            </header>
+            <section class="addresses">
+              <div class="address"><strong>Bill To</strong>${escapeHtml(customerName)}<br>${escapeHtml(getAddressText())}<br>${escapeHtml(customerEmail)}</div>
+              <div class="address"><strong>Payment Information</strong>Method: ${escapeHtml(order.paymentMethod || "Cash on Delivery")}<br>Status: ${escapeHtml(order.paymentStatus || "Pending")}</div>
+            </section>
+            <table>
+              <thead><tr><th>Description</th><th class="center">Qty</th><th class="right">Price</th><th class="right">Total</th></tr></thead>
+              <tbody>${itemRows}</tbody>
+            </table>
+            <section class="summary">
+              <div><span>Subtotal</span><strong>₹${orderSubtotal.toFixed(2)}</strong></div>
+              ${couponDiscount > 0 ? `<div><span>Discount</span><strong>-₹${couponDiscount.toFixed(2)}</strong></div>` : ""}
+              <div><span>Tax</span><strong>₹${orderTax.toFixed(2)}</strong></div>
+              <div class="total"><span>Balance Due</span><span>₹${orderTotal.toFixed(2)}</span></div>
+            </section>
+            <footer class="footer">Thank you for shopping with HAIERAH.</footer>
+          </main>
+        </body>
+      </html>
+    `);
+    invoiceWindow.document.close();
+    invoiceWindow.focus();
+    setTimeout(() => {
+      invoiceWindow.focus();
+      invoiceWindow.print();
+      invoiceWindow.onafterprint = () => invoiceWindow.close();
+    }, 250);
+    setFeedback("Invoice opened. Choose Save as PDF or Print from the dialog.");
   };
 
   const handleNeedHelp = () => {
     setFeedback("Our support team will assist you shortly.");
-  };
-
-  const handleUpdateStatus = () => {
-    if (!order) return;
-    onUpdateOrder?.(order.id || order.orderId || order._id, selectedStatus);
-    setFeedback(`Order status updated to ${selectedStatus}.`);
   };
 
   const handleDeleteOrder = () => {
@@ -69,10 +173,6 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
   };
 
   const canCancel = ["Pending", "Confirmed", "Processing"].includes(String(order?.status || "").trim());
-
-  useEffect(() => {
-    setSelectedStatus(order?.status || "Processing");
-  }, [order?.status]);
 
   return (
     <div className="bg-white rounded-2xl border shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden mb-8">
@@ -178,7 +278,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
               </p>
 
               <p className="text-2xl font-bold mt-4">
-                ₹{item.price}
+                ₹{getItemTotal(item).toFixed(2)}
               </p>
 
               <p className="text-green-600 font-medium mt-3">
@@ -199,7 +299,8 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
 
             <button
               onClick={() => {
-                timelineRef.current?.scrollIntoView({ behavior: "smooth" });
+                setShowDetails(true);
+                setShouldScrollToTracking(true);
                 setFeedback("Tracking details opened below.");
               }}
               className="rounded-lg border px-2 py-3 text-sm transition hover:bg-black hover:text-white sm:text-base"
@@ -226,24 +327,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
       ))}
             {/* VIEW DETAILS BUTTON */}
       <div className="flex flex-col items-center gap-3 border-b px-4 py-5 sm:px-8">
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm"
-          >
-            <option value="Processing">Processing</option>
-            <option value="Delivered">Delivered</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-
-          <button
-            onClick={handleUpdateStatus}
-            className="border rounded-lg px-6 py-2.5 hover:bg-black hover:text-white transition"
-          >
-            Update Status
-          </button>
-
+              <div className="flex flex-wrap items-center justify-center gap-3">
           <button
             onClick={handleCancelOrder}
             disabled={!canCancel}
@@ -410,7 +494,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
                   </span>
 
                   <span>
-                    {order.items.length}
+                    {itemCount}
                   </span>
 
                 </div>
@@ -424,7 +508,7 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
                   </span>
 
                   <span>
-                    ₹{order.total}
+                    ₹{orderSubtotal.toFixed(2)}
                   </span>
 
                 </div>
@@ -443,7 +527,17 @@ export default function OrderCard({ order, onUpdateOrder, onDeleteOrder, onCance
 
                 </div>
 
+                <div className="flex justify-between">
 
+                  <span>
+                    Tax
+                  </span>
+
+                  <span>
+                    ₹{orderTax.toFixed(2)}
+                  </span> 
+
+                </div>
 
                 <div className="flex justify-between font-bold text-lg border-t pt-4">
 

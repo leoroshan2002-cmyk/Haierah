@@ -253,7 +253,7 @@ const campaignData = {
         image:
           "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1600&q=80",
         button: "SHOP NOW",
-        link: "/category/new-arrivals",
+        link: "/category/new-arraival",
       },
     ],
 
@@ -265,7 +265,7 @@ const campaignData = {
         image:
           "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
         button: "SHOP NOW",
-        link: "/category/new-arrivals",
+        link: "/category/new-arraival",
       },
       {
         id: 2,
@@ -274,7 +274,7 @@ const campaignData = {
         image:
           "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
         button: "DISCOVER",
-        link: "/category/new-arrivals",
+        link: "/category/new-arraival",
       },
     ],
     bottomPromoCards: [
@@ -285,7 +285,7 @@ const campaignData = {
         image:
           "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
         button: "SHOP NOW",
-        link: "/category/new-arrivals",
+        link: "/category/new-arraival",
       },
       {
         id: 2,
@@ -294,7 +294,7 @@ const campaignData = {
         image:
           "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
         button: "DISCOVER",
-        link: "/category/new-arrivals",
+        link: "/category/new-arraival",
       },
     ],
   },

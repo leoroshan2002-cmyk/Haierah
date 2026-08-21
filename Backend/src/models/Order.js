@@ -66,6 +66,11 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    subtotal: { type: Number, min: 0, default: 0 },
+    shipping: { type: Number, min: 0, default: 0 },
+    deliveryCost: { type: Number, min: 0, default: 0 },
+    tax: { type: Number, min: 0, default: 0 },
+    couponDiscount: { type: Number, min: 0, default: 0 },
     paymentStatus: {
       type: String,
       default: 'Pending',

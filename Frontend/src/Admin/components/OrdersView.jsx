@@ -388,7 +388,11 @@ export const OrdersView = ({
 
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2.5">
-                          <img src={o.customerAvatar || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150'} className="w-8 h-8 rounded-full object-cover shadow-inner" alt="" />
+                          {o.customerAvatar ? (
+                            <img src={o.customerAvatar} className="w-8 h-8 rounded-full object-cover shadow-inner" alt="" />
+                          ) : (
+                            <div aria-label="No profile image" className="w-8 h-8 rounded-full border border-slate-200 bg-white shadow-inner" />
+                          )}
                           <div>
                             <span className="font-bold text-slate-950 dark:text-white block leading-none">{o.customerName}</span>
                             <span className="text-[10px] text-slate-400 mt-1 block max-w-[150px] truncate leading-none">{o.customerEmail}</span>

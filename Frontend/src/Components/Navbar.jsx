@@ -144,7 +144,7 @@ export default function Navbar() {
               setActiveMenu("MEN");
               setOpen(true);
             }}
-            className="cursor-pointer hover:text-amber-700 transition"
+            className="hidden cursor-pointer hover:text-amber-700 transition md:block"
             aria-label="Open categories"
             type="button"
           >

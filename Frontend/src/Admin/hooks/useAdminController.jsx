@@ -141,7 +141,7 @@ export function useAdminController() {
           name: customer.name || `${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Customer',
           email: customer.email || '',
           phone: customer.phone || 'Not provided',
-          avatar: customer.avatar || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
+          avatar: customer.avatar || '',
           status: customer.status || 'Active',
           orderCount: Number(customer.orderCount || 0),
           totalSpend: Number(customer.totalSpend || 0),

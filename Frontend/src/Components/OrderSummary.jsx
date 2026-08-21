@@ -40,19 +40,18 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
         const match = String(selectedDelivery.price).replace(/[^0-9.]/g, "");
         return Number(match) || 0;
     })();
-    const tax = subtotal * 0.05;
     const couponResult = useMemo(() => {
         if (!appliedCoupon) {
-            return { discountAmount: 0, finalTotal: subtotal + shipping + deliveryCost + tax };
+            return { discountAmount: 0 };
         }
 
         const result = evaluateCoupon(appliedCoupon, subtotal);
-        return {
-            ...result,
-            finalTotal: Number((subtotal - result.discountAmount + shipping + deliveryCost + tax).toFixed(2)),
-        };
-    }, [appliedCoupon, subtotal, shipping, deliveryCost, tax]);
-    const total = couponResult.finalTotal;
+        return result;
+    }, [appliedCoupon, subtotal]);
+    const discountAmount = Number(couponResult.discountAmount || 0);
+    const taxableSubtotal = Math.max(0, subtotal - discountAmount);
+    const tax = Number((taxableSubtotal * 0.05).toFixed(2));
+    const total = Number((taxableSubtotal + shipping + deliveryCost + tax).toFixed(2));
 
     const handleApplyCoupon = () => {
         const normalizedCode = String(couponCode || '').trim().toUpperCase();
@@ -140,7 +139,11 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                 year: "numeric",
             }),
             status: "Processing",
+            subtotal: Number(subtotal.toFixed(2)),
             total: Number(total.toFixed(2)),
+            shipping: Number(shipping.toFixed(2)),
+            deliveryCost: Number(deliveryCost.toFixed(2)),
+            tax: Number(tax.toFixed(2)),
             couponCode: appliedCoupon?.code || "",
             couponDiscount: Number(couponResult.discountAmount || 0),
             customerName,
@@ -230,7 +233,12 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                     customerEmail: orderPayload.customerEmail,
                     customerAvatar: orderPayload.customerAvatar,
                     items: orderPayload.items,
+                    subtotal: orderPayload.subtotal,
                     total: orderPayload.total,
+                    shipping: orderPayload.shipping,
+                    deliveryCost: orderPayload.deliveryCost,
+                    tax: orderPayload.tax,
+                    couponDiscount: orderPayload.couponDiscount,
                     paymentStatus: "Pending",
                     status: orderPayload.status,
                     paymentMethod: orderPayload.paymentMethod,
@@ -442,21 +450,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                     </span>
                 </div>
 
-                <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
-
-                    <span className="flex items-center gap-2 text-gray-500">
-
-                        <Truck size={18} />
-
-                        Shipping
-
-                    </span>
-
-                    <span className="text-green-600">
-                        FREE
-                    </span>
-
-                </div>
+            
 
                 {deliveryCost > 0 && (
                     <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
@@ -476,6 +470,20 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
 
                     <span>
                         ₹{tax.toFixed(2)}
+                    </span>
+
+                </div>    <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
+
+                    <span className="flex items-center gap-2 text-gray-500">
+
+                        <Truck size={18} />
+
+                        Shipping
+
+                    </span>
+
+                    <span className="text-green-600">
+                        FREE
                     </span>
 
                 </div>
