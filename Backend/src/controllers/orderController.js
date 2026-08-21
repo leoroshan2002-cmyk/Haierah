@@ -340,13 +340,11 @@ export const createOrder = async (req, res) => {
 
     const order = await Order.create(orderData);
 
-    try {
-      console.log('Sending order confirmation email...');
-      await emailService.sendOrderStatusEmail(order, `Order confirmation — Order ${order.orderId}`);
-      console.log('Order confirmation email sent successfully.');
-    } catch (err) {
-      console.error('Failed to send order confirmation email:', err);
-    }
+    // Email delivery must not hold the checkout response open when SMTP is slow or unavailable.
+    void emailService
+      .sendOrderStatusEmail(order, `Order confirmation - Order ${order.orderId}`)
+      .then(() => console.log('Order confirmation email sent successfully.'))
+      .catch((err) => console.error('Failed to send order confirmation email:', err?.message || err));
 
     for (const item of normalizedItems) {
       const productId = item.productId;

@@ -37,6 +37,7 @@ export const buildApiUrl = (path) => {
 export const apiClient = axios.create({ 
   baseURL: apiBaseUrl || undefined,
   withCredentials: true,
+  timeout: 20_000,
 });
 export const resolveBackendImageUrl = (image) => {
   if (!image || typeof image !== 'string') return '';
