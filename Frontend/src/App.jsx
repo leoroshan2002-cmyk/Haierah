@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -44,6 +44,7 @@ import StoreLocator from "./Components/footer/StoreLocator";
 
 const App = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const handleLoaded = useCallback(() => setIsLoaded(true), []);
 
   useEffect(() => {
     // Suppress React DevTools console message
@@ -66,7 +67,7 @@ const App = () => {
     <>
       <ToastContainer position="top-right" autoClose={1500} />
 
-      {!isLoaded && <LoadingScreen onComplete={() => setIsLoaded(true)} />}
+      {!isLoaded && <LoadingScreen onComplete={handleLoaded} />}
 
       <div
         style={{
