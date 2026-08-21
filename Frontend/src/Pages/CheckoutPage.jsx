@@ -134,7 +134,7 @@ export default function CheckoutPage() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 mb-6">
     <PageBack />
   </div>
-      <div className="max-w-4xl mx-auto px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
 
         {/* Header */}
 
@@ -154,7 +154,7 @@ export default function CheckoutPage() {
 
         {/* Main Grid */}
 
-        <div className="grid lg:grid-cols-12 gap-10 items-start">
+        <div className="grid lg:grid-cols-12 gap-8 xl:gap-10 items-start">
 
           {/* LEFT SIDE */}
 

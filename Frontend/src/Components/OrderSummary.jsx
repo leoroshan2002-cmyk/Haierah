@@ -342,7 +342,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: .6 }}
-            className="w-full rounded-3xl bg-white p-5 shadow-lg sm:p-8 lg:sticky lg:top-24"
+            className="w-full rounded-3xl border border-gray-100 bg-white p-5 shadow-lg sm:p-7 lg:sticky lg:top-24"
         >
             {/* Heading */}
 
@@ -359,7 +359,7 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                     </div>
                 ) : (
                     cart.map((item) => (
-                        <div key={item.id} className="flex min-w-0 items-center gap-3 sm:gap-4">
+                        <div key={item.id} className="grid min-w-0 grid-cols-[4rem_minmax(0,1fr)_auto] items-center gap-3 sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:gap-4">
                             <img
                                 src={item.image}
                                 alt={item.name}
