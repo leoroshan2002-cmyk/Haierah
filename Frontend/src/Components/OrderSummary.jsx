@@ -5,6 +5,7 @@ import {
     ShieldCheck,
     ArrowRight,
     CheckCircle2,
+    LoaderCircle,
 } from "lucide-react";
 import { useCart } from "../Context/CartContext";
 import { useAuth } from "../Context/AuthContext";
@@ -55,14 +56,26 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
 
     const handleApplyCoupon = () => {
         const normalizedCode = String(couponCode || '').trim().toUpperCase();
-        const storedCouponsPayload = localStorage.getItem('hyra_shopify_admin_coupons');
+        let storedCouponsPayload;
+        try {
+            storedCouponsPayload = localStorage.getItem('hyra_shopify_admin_coupons');
+        } catch {
+            setCouponMessage('Coupons are temporarily unavailable.');
+            return;
+        }
         let storedCoupons;
 
-        if (storedCouponsPayload) {
-            storedCoupons = JSON.parse(storedCouponsPayload);
-        } else {
-            const savedState = JSON.parse(localStorage.getItem('haierah-state') || '{}');
-            storedCoupons = Array.isArray(savedState.coupons) ? savedState.coupons : [];
+        try {
+            if (storedCouponsPayload) {
+                storedCoupons = JSON.parse(storedCouponsPayload);
+            } else {
+                const savedState = JSON.parse(localStorage.getItem('haierah-state') || '{}');
+                storedCoupons = Array.isArray(savedState.coupons) ? savedState.coupons : [];
+            }
+        } catch {
+            setCouponMessage('Coupon data is unavailable.');
+            setAppliedCoupon(null);
+            return;
         }
 
         if (storedCoupons && !Array.isArray(storedCoupons) && Array.isArray(storedCoupons.coupons)) {
@@ -187,7 +200,15 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
     };
 
     const handlePlaceOrder = async () => {
-        if (cart.length === 0) return;
+        if (cart.length === 0 || isProcessing) return;
+
+        const requiredAddressFields = [user?.address, user?.city, user?.state, user?.zip, user?.phone];
+        if (requiredAddressFields.some((field) => !String(field || '').trim())) {
+            const message = 'Please add your complete shipping address before placing the order.';
+            onPaymentError?.(message);
+            toast.error(message);
+            return;
+        }
 
         let orderPayload;
 
@@ -536,8 +557,17 @@ export default function OrderSummary({ selectedPaymentMethod = "Cash on Delivery
                         : "bg-[#0d2746] hover:bg-black text-white"
                     }`}
             >
-                {isProcessing ? 'Processing Order...' : 'Place Order'}
-                <ArrowRight size={20} />
+                {isProcessing ? (
+                    <>
+                        <LoaderCircle size={20} className="animate-spin" aria-hidden="true" />
+                        Processing Order...
+                    </>
+                ) : (
+                    <>
+                        Place Order
+                        <ArrowRight size={20} aria-hidden="true" />
+                    </>
+                )}
             </motion.button>
             <AnimatePresence>
                 {showSuccess && (
