@@ -214,6 +214,9 @@ export const normalizeCampaign = (campaign, category = 'women') => {
 
 export const getCampaign = async (category) => {
   const normalizedCategory = (category || 'women').toLowerCase();
+  const fallbackCategory = normalizedCategory === 'new-arraival'
+    ? 'new-arrivals'
+    : normalizedCategory;
 
   try {
     const { data } = await apiClient.get(`${campaignsUrl}/${encodeURIComponent(normalizedCategory)}`);
@@ -224,7 +227,10 @@ export const getCampaign = async (category) => {
     console.error('Failed to load campaign from backend', error);
   }
 
-  return normalizeCampaign(campaignData[normalizedCategory] || null, normalizedCategory);
+  return normalizeCampaign(
+    campaignData[normalizedCategory] || campaignData[fallbackCategory] || null,
+    normalizedCategory
+  );
 };
 
 export const saveCampaign = async (campaignDataToSave) => {

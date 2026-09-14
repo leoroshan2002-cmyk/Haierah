@@ -28,19 +28,19 @@ const ProductCard = ({
 
     return (
         <motion.div
-            /*whileHover={{ y: -6 }}*/
-            transition={{ duration: 0.3 }}
+            whileHover={{ y: -6 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
             className="group relative"
         >
             {/* Product Image */}
             <Link to={`/product/${product.id}`} className="block overflow-hidden">
-                <div className="relative aspect-[3/4] overflow-hidden bg-[#f7f7f7]">
+                <div className="relative aspect-[3/4] overflow-hidden bg-[#e9e7e1]">
 
     {/* First Image */}
     <img
         src={primaryImage}
         alt={product.name}
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${secondaryImage ? "group-hover:opacity-0" : ""}`}
+        className={`absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105 ${secondaryImage ? "group-hover:opacity-0" : ""}`}
         onError={(e) => {
           e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
         }}
@@ -51,7 +51,7 @@ const ProductCard = ({
       <img
           src={secondaryImage}
           alt={`${product.name} - Alternate view`}
-          className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
           loading="lazy"
           onError={(e) => {
             e.currentTarget.style.display = 'none';
@@ -79,8 +79,17 @@ const ProductCard = ({
                 />
             </button>
 
-            {/* Content */}
-            {/* <div className="p-4"> */}
+            <div className="pt-4">
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <h3 className="line-clamp-2 text-sm font-medium leading-5 text-[#172333]">{product.name}</h3>
+                        <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-[#172333]/45">{product.category || "Haierah collection"}</p>
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold text-[#172333]">
+                        ₹{product.discountPrice || product.price}
+                    </span>
+                </div>
+            </div>
 
                 {/* Name & Rating */}
                 {/* <div className="flex justify-between items-start">

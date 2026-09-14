@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { getCampaign } from "../services/api";
 import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../utils/productImages";
 
@@ -46,60 +47,110 @@ export default function CampaignSlider({ category }) {
   if (slides.length === 0) return null;
 
   return (
-    <div className="relative w-full h-[550px] overflow-hidden bg-black">
+    <div className="relative h-[550px] w-full overflow-hidden bg-black">
       {slides.map((slide, index) => (
-        <div
+        <motion.div
           key={slide.id || index}
-          className={`absolute inset-0 transition-opacity duration-700 ${
-            index === current ? "opacity-100 z-10" : "opacity-0"
-          }`}
+          initial={{ opacity: 0 }}
+          animate={{
+            opacity: index === current ? 1 : 0,
+          }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className={`absolute inset-0 ${index === current ? "z-10" : "z-0 pointer-events-none"}`}
         >
-          <img
+          <motion.img
             src={getSafeImageUrl(slide.image, DEFAULT_IMAGE_FALLBACK)}
             alt={slide.title}
-            className="w-full h-full object-cover"
+            initial={{ scale: 1.08 }}
+            animate={{ scale: index === current ? 1.02 : 1.08 }}
+            transition={{ duration: 6, ease: "linear" }}
+            className="h-full w-full object-cover"
             onError={(e) => {
               e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
             }}
           />
 
-          <div className="absolute inset-0 bg-black/25"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
 
-          <div className="absolute left-20 top-1/2 -translate-y-1/2 text-white max-w-xl">
-            {/* <p className="uppercase tracking-[4px] text-sm mb-4">{slide.subtitle}</p>
-            <h1 className="text-6xl font-bold leading-tight mb-6">{slide.title}</h1>
-            <p className="text-xl mb-8">{slide.description}</p> */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: index === current ? 1 : 0, x: index === current ? 0 : -20 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="absolute bottom-16 left-6 max-w-xl text-white sm:left-12 lg:left-20"
+          >
+            {slide.subtitle && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: index === current ? 1 : 0, y: index === current ? 0 : 10 }}
+                transition={{ duration: 0.5, delay: 0.08 }}
+                className="mb-4 text-[10px] uppercase tracking-[0.35em] text-white/75"
+              >
+                {slide.subtitle}
+              </motion.p>
+            )}
 
-            {/* <Link
-              to={slide.link || "/products"}
-              className="bg-white text-black px-8 py-4 font-semibold hover:bg-gray-200 transition"
-            >
-              {slide.button || slide.buttonText || "SHOP NOW"}
-            </Link> */}
-          </div>
-        </div>
+            {slide.title && (
+              <motion.h1
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: index === current ? 1 : 0, y: index === current ? 0 : 14 }}
+                transition={{ duration: 0.6, delay: 0.12 }}
+                className="max-w-lg font-serif text-4xl leading-[0.95] tracking-[-0.04em] sm:text-6xl"
+              >
+                {slide.title}
+              </motion.h1>
+            )}
+
+            {slide.description && (
+              <motion.p
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: index === current ? 1 : 0, y: index === current ? 0 : 12 }}
+                transition={{ duration: 0.6, delay: 0.18 }}
+                className="mt-5 max-w-sm text-sm leading-6 text-white/80"
+              >
+                {slide.description}
+              </motion.p>
+            )}
+
+            {slide.link && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: index === current ? 1 : 0, y: index === current ? 0 : 12 }}
+                transition={{ duration: 0.6, delay: 0.24 }}
+              >
+            
+              </motion.div>
+            )}
+          </motion.div>
+
+       
+        </motion.div>
       ))}
 
       <button
         onClick={prevSlide}
-        className="absolute left-6 top-1/2 -translate-y-1/2 z-30 bg-black/50 text-white p-3 rounded-full hover:bg-black"
+        aria-label="Previous campaign slide"
+        className="absolute left-6 top-1/2 z-30 -translate-y-1/2 rounded-full bg-black/40 p-3 text-white transition hover:bg-black/70"
       >
         <ChevronLeft size={24} />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-6 top-1/2 -translate-y-1/2 z-30 bg-black/50 text-white p-3 rounded-full hover:bg-black"
+        aria-label="Next campaign slide"
+        className="absolute right-6 top-1/2 z-30 -translate-y-1/2 rounded-full bg-black/40 p-3 text-white transition hover:bg-black/70"
       >
         <ChevronRight size={24} />
       </button>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-30">
+      <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 gap-3">
         {slides.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrent(index)}
-            className={`w-3 h-3 rounded-full ${current === index ? "bg-white" : "bg-white/40"}`}
+            className={`h-2.5 rounded-full transition-all duration-300 ${
+              current === index ? "w-8 bg-white" : "w-2.5 bg-white/50"
+            }`}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>

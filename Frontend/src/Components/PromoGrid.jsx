@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { getCampaign } from "../services/api";
 import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../utils/productImages";
 
@@ -30,35 +30,72 @@ export default function PromoGrid({ category, variant = "top" }) {
   if (promos.length === 0) return null;
 
   return (
-    <section className={`grid grid-cols-1 ${variant === "bottom" ? "md:grid-cols-2 gap-4" : "md:grid-cols-2 gap-6"}`}>
+    <section className={`grid grid-cols-1 ${variant === "bottom" ? "gap-4 md:grid-cols-2" : "gap-4 md:grid-cols-2 md:gap-6"}`}>
       {promos.map((item, index) => (
-        <div key={item.id || index} className="relative h-[550px] overflow-hidden group rounded-[2rem]">
-          <img
-            src={getSafeImageUrl(item.image, DEFAULT_IMAGE_FALLBACK)}
-            alt={item.title}
-            className="w-full h-full object-cover transition duration-500 group-hover:scale-105"
-            onError={(e) => {
-              e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
-            }}
+        <motion.article
+          key={item.id || index}
+          initial={{ opacity: 0, y: 32, scale: 0.985, filter: "blur(1.5px)" }}
+          whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+          viewport={{ once: true, amount: 0.25 }}
+          whileHover={{ y: -6, scale: 1.005 }}
+          transition={{ duration: 1.4, delay: index * 0.16, ease: [0.22, 1, 0.36, 1] }}
+          className="group relative h-[420px] overflow-hidden rounded-[1.5rem] shadow-[0_18px_40px_rgba(0,0,0,0.16)] sm:h-[550px]"
+        >
+          <motion.div
+            initial={{ scale: 1.04, opacity: 0.92 }}
+            whileHover={{ scale: 1.1 }}
+            transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
+            className="h-full w-full"
+          >
+            <motion.img
+              src={getSafeImageUrl(item.image, DEFAULT_IMAGE_FALLBACK)}
+              alt={item.title}
+              initial={{ scale: 1.1 }}
+              whileInView={{ scale: 1 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
+              className="h-full w-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+              }}
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0.2 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 1.2, delay: 0.12 + index * 0.08 }}
+            className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.14),rgba(0,0,0,0.72))]"
           />
 
-          <div className="absolute inset-0 bg-black/25"></div>
-
-          {/* <div className="absolute bottom-12 left-12 text-white max-w-sm">
-            {item.title && <h2 className="text-4xl font-bold mb-4">{item.title}</h2>}
-            {item.description && <p className="text-lg mb-6 leading-relaxed">{item.description}</p>}
-
-            {item.link && (
-              <Link
-                to={item.link}
-                className="inline-flex items-center gap-2 rounded-full border border-white px-5 py-3 text-sm font-semibold uppercase tracking-[.18em] text-white transition hover:bg-white/10"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, delay: 0.22 + index * 0.16, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute bottom-8 left-8 max-w-sm text-white sm:bottom-12 sm:left-12"
+          >
+            {item.title && (
+              <motion.h2
+                whileHover={{ x: 3 }}
+                transition={{ duration: 0.35 }}
+                className="font-serif text-3xl leading-[0.9] tracking-[-0.05em] sm:text-4xl lg:text-[3rem]"
               >
-                {item.button || item.buttonText || "SHOP NOW"}
-                <span>→</span>
-              </Link>
+                {item.title}
+              </motion.h2>
             )}
-          </div> */}
-        </div>
+
+            {item.description && (
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.0, delay: 0.38 + index * 0.16 }}
+                className="mt-3 max-w-xs text-sm leading-6 text-white/80 sm:text-[0.95rem]"
+              >
+                {item.description}
+              </motion.p>
+            )}
+          </motion.div>
+        </motion.article>
       ))}
     </section>
   );

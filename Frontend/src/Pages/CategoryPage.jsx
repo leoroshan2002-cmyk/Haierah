@@ -13,11 +13,13 @@ import HaierahStandard from "../Components/HaierahStandard";
 import Footer from "../Components/Footer";
 import CampaignSlider from "../Components/CampaignSlider";
 import PromoGrid from "../Components/PromoGrid";
+
+const reveal = { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0 } };
+
 export default function CategoryPage() {
   const { slug } = useParams();
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const subcategory = searchParams.get("subcategory");
+  const subcategory = new URLSearchParams(location.search).get("subcategory");
   const [category, setCategory] = useState(null);
   const [products, setProducts] = useState([]);
   const [loadingCategory, setLoadingCategory] = useState(true);
@@ -28,219 +30,75 @@ export default function CategoryPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoadingCategory(true);
     const loadCategory = async () => {
+      setLoadingCategory(true);
       const categories = await fetchCategories();
       if (cancelled) return;
-      const matchedCategory = categories.find(
-        (cat) => cat.slug === slug || cat.slug === encodeURIComponent(slug)
-      );
-      setCategory(matchedCategory || null);
+      setCategory(categories.find((item) => item.slug === slug || item.slug === encodeURIComponent(slug)) || null);
       setLoadingCategory(false);
     };
-
     loadCategory();
     return () => { cancelled = true; };
   }, [slug]);
 
   useEffect(() => {
     let cancelled = false;
-    setLoadingProducts(true);
     const loadProducts = async () => {
+      setLoadingProducts(true);
       const response = await fetchProducts();
       if (cancelled) return;
       setProducts(response);
       setLoadingProducts(false);
     };
-
     loadProducts();
-
-    const handleInventoryChange = () => {
-      loadProducts();
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('haierah-products-updated', handleInventoryChange);
-      window.addEventListener('haierah-order-created', handleInventoryChange);
-    }
-
+    const handleInventoryChange = () => loadProducts();
+    window.addEventListener("haierah-products-updated", handleInventoryChange);
+    window.addEventListener("haierah-order-created", handleInventoryChange);
     const unsubscribeCatalog = subscribeToCatalogChanges(handleInventoryChange);
-
     return () => {
       cancelled = true;
       unsubscribeCatalog();
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('haierah-products-updated', handleInventoryChange);
-        window.removeEventListener('haierah-order-created', handleInventoryChange);
-      }
+      window.removeEventListener("haierah-products-updated", handleInventoryChange);
+      window.removeEventListener("haierah-order-created", handleInventoryChange);
     };
   }, []);
 
   const normalizeValue = (value) => normalizeSearchText(value);
-
-  const getCategorySubcategories = () => {
-    if (!category) return [];
-
-    const fromCategory = Array.isArray(category.subCategories)
-      ? category.subCategories
-      : category.subCategory
-        ? [category.subCategory]
-        : [];
-
-    if (fromCategory.length > 0) {
-      return fromCategory.filter(Boolean);
-    }
-
-    const categoryProducts = products.filter((product) => {
-      const productCategory = normalizeValue(product.category);
-      const categoryName = normalizeValue(category.name);
-      const categorySlug = normalizeValue(category.slug);
-      return productCategory === categoryName || productCategory === categorySlug;
-    });
-
-    const discovered = categoryProducts
-      .map((product) => getProductSubcategories(product))
-      .flat()
-      .filter(Boolean);
-
-    return Array.from(new Set(discovered));
-  };
-
   const getProductSubcategories = (product) => {
-    if (Array.isArray(product.subCategories)) {
-      return product.subCategories.filter(Boolean);
-    }
-
-    if (Array.isArray(product.subCategory)) {
-      return product.subCategory.filter(Boolean);
-    }
-
+    if (Array.isArray(product.subCategories)) return product.subCategories.filter(Boolean);
+    if (Array.isArray(product.subCategory)) return product.subCategory.filter(Boolean);
     return [product.subCategory].filter(Boolean);
   };
-
-  const availableSubcategories = getCategorySubcategories();
-
-  const filteredProducts = category
-    ? products.filter((product) => {
-        const productCategory = normalizeValue(product.category);
-        const categoryName = normalizeValue(category.name);
-        const categorySlug = normalizeValue(category.slug);
-        const matchesCategory = productCategory === categoryName || productCategory === categorySlug;
-
-        const matchesSubcategory =
-          !subcategory ||
-          getProductSubcategories(product).some((value) => normalizeValue(value) === normalizeValue(subcategory));
-
-        return matchesCategory && matchesSubcategory;
-      })
-    : [];
+  const availableSubcategories = category ? (Array.isArray(category.subCategories) ? category.subCategories : [category.subCategory].filter(Boolean)) : [];
+  const filteredProducts = category ? products.filter((product) => {
+    const productCategory = normalizeValue(product.category);
+    const matchesCategory = productCategory === normalizeValue(category.name) || productCategory === normalizeValue(category.slug);
+    const matchesSubcategory = !subcategory || getProductSubcategories(product).some((value) => normalizeValue(value) === normalizeValue(subcategory));
+    return matchesCategory && matchesSubcategory;
+  }) : [];
 
   if (loadingCategory || loadingProducts) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#f8f7f5] via-white to-white">
-        <div className="max-w-[1440px] mx-auto px-8 lg:px-12 pt-24 pb-24">
-          <div className="mb-6">
-            <div className="h-8 w-24 bg-gray-200 rounded animate-pulse" />
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-100">
-                <div className="aspect-[3/4] bg-gray-200 animate-pulse" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-                  <div className="h-3 bg-gray-200 rounded animate-pulse w-1/2" />
-                  <div className="h-5 bg-gray-200 rounded animate-pulse w-1/3" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-[#f8f7f5] px-8 pb-24 pt-24"><div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-6 md:grid-cols-4">{Array.from({ length: 8 }).map((_, index) => <div key={index} className="aspect-[3/4] animate-pulse rounded-2xl bg-gray-200" />)}</div></div>;
   }
 
   if (!category) {
-    return (
-      <div className="min-h-screen pt-28 bg-[#f8f7f5]">
-        <div className="max-w-6xl mx-auto px-6 py-24 text-center">
-          <h1 className="text-4xl font-bold mb-4">Category not found</h1>
-          <p className="text-slate-600 mb-6">
-            We couldn&apos;t find the category you were looking for.
-          </p>
-          <Link
-            to="/products"
-            className="inline-flex items-center justify-center rounded-full bg-amber-700 px-6 py-3 text-white font-bold hover:bg-amber-800 transition"
-          >
-            Browse all products
-          </Link>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen bg-[#f8f7f5] px-6 pb-24 pt-28 text-center"><h1 className="mb-4 text-4xl font-bold">Category not found</h1><Link to="/products" className="rounded-full bg-amber-700 px-6 py-3 font-bold text-white">Browse all products</Link></div>;
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.7, ease: "easeOut" }}
-      className="min-h-screen bg-gradient-to-b from-[#f8f7f5] via-white to-white"
-    >
-      
-      {/* Campaign Banner */}
-     <CampaignSlider category={category?.slug} />
-
-     {/* top promo images */}
-     <div className="mt-12">
-       <PromoGrid category={category?.slug} variant="top" />
-     </div>
-
-      <div className="max-w-[1440px] mx-auto px-8 lg:px-12 py-24">
-        
-        <div className="mb-6">
-          <PageBack />
-        </div>
-
-        
-
-
-        {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-6 gap-y-10">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={() => {
-                  if (!requireAuthAction("addToCart", product)) return;
-                  addToCart(product);
-                }}
-                onWishlist={toggleWishlist}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center shadow-sm">
-            <h3 className="text-2xl font-semibold text-slate-900 mb-3">No products yet</h3>
-            <p className="text-slate-500 mb-6">
-              There are no products assigned to the {category.name} category yet.
-            </p>
-            <Link
-              to="/products"
-              className="inline-flex items-center justify-center rounded-full bg-amber-700 px-6 py-3 text-white font-bold hover:bg-amber-800 transition"
-            >
-              Browse other categories
-            </Link>
-          </div>
-        )}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} className="min-h-screen overflow-hidden bg-[#f7f6f2] text-[#172333]">
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}><CampaignSlider category={category.slug} /></motion.div>
+      <motion.div initial={{ opacity: 0, y: 36 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.8 }} className="mx-auto mt-8 max-w-[1440px] px-4 sm:mt-12 sm:px-8 lg:px-12"><PromoGrid category={category.slug} variant="top" /></motion.div>
+      <div className="mx-auto max-w-[1440px] px-4 py-16 sm:px-8 sm:py-24 lg:px-12">
+        <div className="mb-8"><PageBack /></div>
+        <motion.header initial="hidden" whileInView="visible" viewport={{ once: true }} variants={reveal} transition={{ duration: 0.7 }} className="mb-12 flex flex-col gap-8 border-y border-[#172333]/15 py-8 md:flex-row md:items-end md:justify-between">
+          <div><p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.35em] text-[#b36c42]">The Haierah edit / 2026</p><h1 className="font-serif text-5xl tracking-[-0.04em] sm:text-6xl">{category.name}</h1><p className="mt-4 max-w-xl text-sm leading-7 text-[#172333]/65">Considered pieces for everyday movement, cut with intention and made to stay in rotation.</p></div>
+          <div className="flex flex-col items-start gap-4 md:items-end"><span className="text-xs uppercase tracking-[0.2em] text-[#172333]/55">{filteredProducts.length} {filteredProducts.length === 1 ? "piece" : "pieces"}</span>{availableSubcategories.length > 0 && <nav className="flex flex-wrap gap-2" aria-label={`${category.name} subcategories`}><Link to={`/category/${category.slug}`} className={`rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] ${!subcategory ? "border-[#172333] bg-[#172333] text-white" : "border-[#172333]/20 text-[#172333]/65"}`}>All</Link>{availableSubcategories.map((item) => <Link key={item} to={`/category/${category.slug}?subcategory=${encodeURIComponent(item)}`} className={`rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.18em] ${normalizeValue(subcategory) === normalizeValue(item) ? "border-[#b36c42] bg-[#b36c42] text-white" : "border-[#172333]/20 text-[#172333]/65"}`}>{item}</Link>)}</nav>}</div>
+        </motion.header>
+        {filteredProducts.length > 0 ? <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.08 }} variants={{ visible: { transition: { staggerChildren: 0.07 } } }} className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4">{filteredProducts.map((product) => <motion.div key={product.id} variants={reveal} transition={{ duration: 0.6 }}><ProductCard product={product} onAddToCart={() => { if (!requireAuthAction("addToCart", product)) return; addToCart(product); }} onWishlist={toggleWishlist} /></motion.div>)}</motion.div> : <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center"><h3 className="mb-3 text-2xl font-semibold">No products yet</h3><p className="mb-6 text-slate-500">There are no products assigned to the {category.name} category yet.</p><Link to="/products" className="rounded-full bg-amber-700 px-6 py-3 font-bold text-white">Browse other categories</Link></div>}
       </div>
-      
-        {/* bottom promo images */}
-        <div className="mt-12">
-          <PromoGrid category={category?.slug} variant="bottom" />
-        </div>
-       
-      <HaierahStandard />
-      
-      <Footer />
+      <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="mx-auto mt-8 max-w-[1440px] px-4 sm:mt-12 sm:px-8 lg:px-12"><PromoGrid category={category.slug} variant="bottom" /></motion.div>
+      <HaierahStandard /><Footer />
     </motion.div>
   );
 }
