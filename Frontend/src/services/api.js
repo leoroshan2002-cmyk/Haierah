@@ -142,7 +142,7 @@ const createEmptyCampaign = (category = 'women') => ({
     button: '',
     link: `/category/${category}`,
   })),
-  promoCards: Array.from({ length: 2 }, (_, index) => ({
+  promoCards: Array.from({ length: 3 }, (_, index) => ({
     id: index + 1,
     title: '',
     subtitle: '',
@@ -152,7 +152,7 @@ const createEmptyCampaign = (category = 'women') => ({
     button: '',
     link: `/category/${category}`,
   })),
-  bottomPromoCards: Array.from({ length: 2 }, (_, index) => ({
+  bottomPromoCards: Array.from({ length: 3 }, (_, index) => ({
     id: index + 1,
     title: '',
     subtitle: '',
@@ -192,9 +192,9 @@ export const normalizeCampaign = (campaign, category = 'women') => {
   }
 
   const safeCategory = campaign.category || category;
-  const promoCards = normalizeCollection(campaign.promoCards, baseCampaign.promoCards, safeCategory);
+  const promoCards = normalizeCollection(campaign.promoCards, baseCampaign.promoCards, safeCategory).slice(0, 3);
   const bottomPromoCards = Array.isArray(campaign.bottomPromoCards)
-    ? normalizeCollection(campaign.bottomPromoCards, baseCampaign.bottomPromoCards, safeCategory)
+    ? normalizeCollection(campaign.bottomPromoCards, baseCampaign.bottomPromoCards, safeCategory).slice(0, 3)
     : promoCards;
 
   return {
@@ -236,11 +236,35 @@ export const getCampaign = async (category) => {
 export const saveCampaign = async (campaignDataToSave) => {
   const normalizedCategory = (campaignDataToSave?.category || 'women').toLowerCase();
   const normalizedCampaign = normalizeCampaign(campaignDataToSave, normalizedCategory);
+  const formData = new FormData();
+  const collections = ['slider', 'promoCards', 'bottomPromoCards'];
+
+  const campaignPayload = {
+    ...normalizedCampaign,
+    ...Object.fromEntries(collections.map((collection) => [
+      collection,
+      normalizedCampaign[collection].map((entry, index) => {
+        const selectedFile = campaignDataToSave?.[collection]?.[index]?.imageFile;
+        const item = { ...entry };
+        const image = item.image;
+        delete item.image;
+        delete item.imageFile;
+        if (selectedFile) {
+          formData.append(`${collection}[${index}]`, selectedFile);
+        }
+        return {
+          ...item,
+          image: image?.startsWith('blob:') ? '' : image,
+        };
+      }),
+    ])),
+  };
+  formData.append('campaign', JSON.stringify(campaignPayload));
 
   try {
     const { data } = await apiClient.put(
       `${campaignsUrl}/${encodeURIComponent(normalizedCategory)}`,
-      normalizedCampaign
+      formData
     );
 
     return {

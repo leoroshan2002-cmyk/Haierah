@@ -1,4 +1,3 @@
-import React from "react";
 import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../../utils/productImages";
 
 const CampaignForm = ({ slide, index, updateSlide }) => {
@@ -13,6 +12,7 @@ const CampaignForm = ({ slide, index, updateSlide }) => {
           const file = event.target.files?.[0];
           if (file) {
             updateSlide(index, "image", URL.createObjectURL(file));
+            updateSlide(index, "imageFile", file);
           }
         }}
       />
@@ -20,7 +20,7 @@ const CampaignForm = ({ slide, index, updateSlide }) => {
 
       {slide.image && (
         <img
-          src={getSafeImageUrl(slide.image, DEFAULT_IMAGE_FALLBACK)}
+          src={slide.image?.startsWith("blob:") ? slide.image : getSafeImageUrl(slide.image, DEFAULT_IMAGE_FALLBACK)}
           alt=""
           className="mt-3 h-48 w-full rounded object-cover"
           onError={(e) => {

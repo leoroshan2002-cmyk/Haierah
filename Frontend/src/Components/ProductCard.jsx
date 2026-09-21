@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Heart, Star } from "lucide-react";
+import { Heart, ShoppingBag, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { useWishlist } from "../Context/WhislistContext";
 import { useRequireAuthAction } from "../hooks/useRequireAuthAction";
@@ -10,58 +9,22 @@ const ProductCard = ({
     product,
     onAddToCart,
     onWishlist,
-    // isWishlisted = false,
-    showColors = true,
-    showSizes = true,
-    showRating = true,
     showButtons = true,
 }) => {
-    const colors = product.colors || [];
-    const sizes = product.sizes || ["S", "M", "L", "XL"];
     const { isWishlisted } = useWishlist();
     const { requireAuthAction } = useRequireAuthAction();
-    const [selectedColor, setSelectedColor] = useState(colors[0] || "");
-    const [selectedSize, setSelectedSize] = useState(sizes[0] || "");
     const sanitizedImages = normalizeImageList(product.images || [product.image]);
     const primaryImage = getSafeImageUrl(sanitizedImages[0] || product.image, DEFAULT_IMAGE_FALLBACK);
     const secondaryImage = getSafeImageUrl(sanitizedImages[1] || '', '');
 
     return (
-        <motion.div
+        <motion.article
             whileHover={{ y: -6 }}
             transition={{ duration: 0.35, ease: "easeOut" }}
-            className="group relative"
+            className="group relative h-[386px] overflow-hidden rounded-[1.65rem] bg-white px-5 pb-5 pt-4 shadow-[0_10px_25px_rgba(28,35,40,0.04)] transition-shadow duration-300 group-hover:shadow-[0_18px_35px_rgba(28,35,40,0.12)] sm:h-[410px]"
         >
-            {/* Product Image */}
-            <Link to={`/product/${product.id}`} className="block overflow-hidden">
-                <div className="relative aspect-[3/4] overflow-hidden bg-[#e9e7e1]">
-
-    {/* First Image */}
-    <img
-        src={primaryImage}
-        alt={product.name}
-        className={`absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105 ${secondaryImage ? "group-hover:opacity-0" : ""}`}
-        onError={(e) => {
-          e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
-        }}
-    />
-
-    {/* Hover Image */}
-    {secondaryImage && (
-      <img
-          src={secondaryImage}
-          alt={`${product.name} - Alternate view`}
-          className="absolute inset-0 h-full w-full object-cover opacity-0 transition duration-700 group-hover:scale-105 group-hover:opacity-100"
-          loading="lazy"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-          }}
-      />
-    )}
-</div>
-            </Link>
-
-            {/* Wishlist */}
+            <div className="absolute left-5 top-4 z-20">
+                {/* Wishlist */}
             <button
                 onClick={(e) => {
                     e.preventDefault();
@@ -69,7 +32,7 @@ const ProductCard = ({
                     if (!requireAuthAction("toggleWishlist", product)) return;
                     onWishlist?.(product);
                 }}
-                className="absolute top-3 right-3 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 hover:scale-110"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f5f6f7] transition hover:scale-105"
             >
                 <Heart
                     className={`h-5 w-5 transition ${isWishlisted(product.id)
@@ -79,127 +42,64 @@ const ProductCard = ({
                 />
             </button>
 
-            <div className="pt-4">
-                <div className="flex items-start justify-between gap-3">
-                    <div>
-                        <h3 className="line-clamp-2 text-sm font-medium leading-5 text-[#172333]">{product.name}</h3>
-                        <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-[#172333]/45">{product.category || "Haierah collection"}</p>
-                    </div>
-                    <span className="shrink-0 text-sm font-semibold text-[#172333]">
-                        ₹{product.discountPrice || product.price}
-                    </span>
-                </div>
             </div>
 
-                {/* Name & Rating */}
-                {/* <div className="flex justify-between items-start">
-                    <h3 className="font-semibold text-[15px] line-clamp-2">
-                        {product.name}
-                    </h3>
+            <span className="absolute right-5 top-4 z-20 flex items-center gap-1 rounded-full border border-orange-100 bg-[#fff8f1] px-3 py-2 text-xs font-medium text-[#343434]">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    {product.rating || "4.8"}
+            </span>
 
-                    {showRating && (
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <Star
-                                size={13}
-                                className="fill-yellow-400 text-yellow-400"
-                            />
-                            {product.rating || "4.8"} ({product.reviews || 248})
-                        </div>
+            <Link to={`/product/${product.id}`} className="block">
+                <div className="relative mt-1 h-[245px] overflow-hidden sm:h-[265px]">
+                    <img
+                        src={primaryImage}
+                        alt={product.name}
+                        className={`h-full w-full object-contain transition duration-700 group-hover:scale-[1.08] ${secondaryImage ? "group-hover:opacity-0" : ""}`}
+                        onError={(e) => {
+                            e.currentTarget.src = DEFAULT_IMAGE_FALLBACK;
+                        }}
+                    />
+                    {secondaryImage && (
+                        <img
+                            src={secondaryImage}
+                            alt={`${product.name} - Alternate view`}
+                            className="absolute inset-0 h-full w-full object-contain opacity-0 transition duration-700 group-hover:scale-[1.08] group-hover:opacity-100"
+                            loading="lazy"
+                            onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                            }}
+                        />
                     )}
-                </div> */}
+                </div>
+            </Link>
 
-                {/* Price */}
-                {/* <div className="flex items-center justify-between mt-3">
-                    <div>
-                        <span className="text-lg font-bold">
-                            ₹{product.discountPrice || product.price}
-                        </span>
-
+            <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-3">
+                <div className="min-w-0">
+                    <h3 className="truncate text-[15px] font-medium text-[#3e4246]">{product.name}</h3>
+                    <div className="mt-1 flex items-baseline gap-2">
+                        <span className="text-[21px] font-semibold text-[#e64f00]">₹{product.discountPrice || product.price}</span>
                         {product.discountPrice && (
-                            <span className="ml-2 text-sm line-through text-gray-400">
-                                ₹{product.price}
-                            </span>
+                            <span className="text-sm text-[#777] line-through">₹{product.price}</span>
                         )}
                     </div>
+                </div>
 
-                    {product.discount && (
-                        <span className="rounded bg-red-100 px-2 py-1 text-[10px] font-semibold text-red-500">
-                            SAVE {product.discount || "10"}%
-                        </span>
-                    )}
-                </div> */}
+                {showButtons && (
+                    <button
+                        type="button"
+                        aria-label={`Add ${product.name} to cart`}
+                        onClick={() => {
+                            if (!requireAuthAction("addToCart", product)) return;
+                            onAddToCart?.(product);
+                        }}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#20252a] transition duration-300 hover:scale-110 group-hover:bg-[#ed7818] group-hover:text-white"
+                    >
+                        <ShoppingBag className="h-6 w-6" strokeWidth={1.8} />
+                    </button>
+                )}
+            </div>
 
-                {/* Colors */}
-                {/* {showColors && colors.length > 0 && (
-                    <div className="mt-4 flex items-center justify-between">
-
-                        
-                            <div className="flex gap-2">
-                                {colors.map((c) => {
-                                    const key = typeof c === "string" ? c : c.name || c.value || JSON.stringify(c);
-                                    const value = typeof c === "string" ? c : c.value;
-
-                                    return (
-                                        <button
-                                            key={key}
-                                            onClick={() => setSelectedColor(c)}
-                                            className={`h-5 w-5 rounded-full border-2 transition ${selectedColor === c
-                                                ? "border-black scale-110"
-                                                : "border-gray-300"
-                                                }`}
-                                            style={{ background: value }}
-                                        />
-                                    );
-                                })}
-                            </div>
-
-                            <span className="text-xs text-gray-400">
-                                {colors.length} Colors
-                            </span>
-                        </div>
-                )} */}
-
-                        {/* Sizes */}
-                        {/* {showSizes && sizes.length > 0 && (
-                            <div className="mt-4 flex gap-2 flex-wrap">
-                                {sizes.map((s) => (
-                                    <button
-                                        key={s}
-                                        onClick={() => setSelectedSize(s)}
-                                        className={`flex h-8 w-8 items-center justify-center rounded-lg border text-xs font-medium transition ${selectedSize === s
-                                            ? "bg-black text-white border-black"
-                                            : "border-gray-300 hover:border-black"
-                                            }`}
-                                    >
-                                        {s}
-                                    </button>
-                                ))}
-                            </div>
-                        )} */}
-
-                        {/* Buttons */}
-                        {/* {showButtons && (
-                            <div className="mt-5 flex gap-3">
-                                <Link
-                                    to={`/product/${product.id}`}
-                                    className="flex-1 rounded-full bg-[#0d2746] py-2 text-center text-sm font-medium text-white hover:bg-[#16385f] transition"
-                                >
-                                    View
-                                </Link>
-
-                                <button
-                                    onClick={() => {
-                                        if (!requireAuthAction("addToCart", product)) return;
-                                        onAddToCart?.(product);
-                                    }}
-                                    className="flex-1 rounded-full border border-gray-300 py-2 text-sm font-medium hover:bg-gray-100 transition"
-                                >
-                                    Add to Cart
-                                </button>
-                            </div>
-                        )} */}
-                    {/* </div> */}
-        </motion.div>
+            </motion.article>
     );
 };
 

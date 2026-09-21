@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { getCampaign } from "../services/api";
+import { getCampaign, resolveBackendImageUrl } from "../services/api";
 import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../utils/productImages";
 
 export default function CampaignSlider({ category }) {
@@ -59,7 +58,7 @@ export default function CampaignSlider({ category }) {
           className={`absolute inset-0 ${index === current ? "z-10" : "z-0 pointer-events-none"}`}
         >
           <motion.img
-            src={getSafeImageUrl(slide.image, DEFAULT_IMAGE_FALLBACK)}
+            src={resolveBackendImageUrl(getSafeImageUrl(slide.image, DEFAULT_IMAGE_FALLBACK))}
             alt={slide.title}
             initial={{ scale: 1.08 }}
             animate={{ scale: index === current ? 1.02 : 1.08 }}

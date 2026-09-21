@@ -97,7 +97,9 @@ export default function CategoryPage() {
         </motion.header>
         {filteredProducts.length > 0 ? <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.08 }} variants={{ visible: { transition: { staggerChildren: 0.07 } } }} className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 md:grid-cols-3 lg:grid-cols-4">{filteredProducts.map((product) => <motion.div key={product.id} variants={reveal} transition={{ duration: 0.6 }}><ProductCard product={product} onAddToCart={() => { if (!requireAuthAction("addToCart", product)) return; addToCart(product); }} onWishlist={toggleWishlist} /></motion.div>)}</motion.div> : <div className="rounded-3xl border border-slate-200 bg-white p-16 text-center"><h3 className="mb-3 text-2xl font-semibold">No products yet</h3><p className="mb-6 text-slate-500">There are no products assigned to the {category.name} category yet.</p><Link to="/products" className="rounded-full bg-amber-700 px-6 py-3 font-bold text-white">Browse other categories</Link></div>}
       </div>
-      <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="mx-auto mt-8 max-w-[1440px] px-4 sm:mt-12 sm:px-8 lg:px-12"><PromoGrid category={category.slug} variant="bottom" /></motion.div>
+      <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="mx-auto mt-8 max-w-[1440px] px-4 sm:mt-12 sm:px-8 lg:px-12">
+        {/* <PromoGrid category={category.slug} variant="bottom" /> */}
+        </motion.div>
       <HaierahStandard /><Footer />
     </motion.div>
   );

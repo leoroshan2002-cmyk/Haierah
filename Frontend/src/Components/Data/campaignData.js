@@ -300,4 +300,23 @@ const campaignData = {
   },
 };
 
+const fallbackPromoCard = (cards, category) => ({
+  ...cards[0],
+  id: 3,
+  title: "MORE TO EXPLORE",
+  description: "Discover more styles from this collection.",
+  button: "DISCOVER",
+  link: `/category/${category}`,
+});
+
+Object.entries(campaignData).forEach(([category, campaign]) => {
+  if (campaign.promoCards.length < 3) {
+    campaign.promoCards.push(fallbackPromoCard(campaign.promoCards, category));
+  }
+
+  if (campaign.bottomPromoCards.length < 3) {
+    campaign.bottomPromoCards.push(fallbackPromoCard(campaign.bottomPromoCards, category));
+  }
+});
+
 export default campaignData;

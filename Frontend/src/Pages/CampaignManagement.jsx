@@ -16,7 +16,7 @@ const createEmptyCampaign = (category = "women") => ({
     button: "",
     link: `/category/${category}`,
   })),
-  promoCards: Array.from({ length: 2 }, (_, index) => ({
+  promoCards: Array.from({ length: 3 }, (_, index) => ({
     id: index + 1,
     image: "",
     title: "",
@@ -26,7 +26,7 @@ const createEmptyCampaign = (category = "women") => ({
     button: "",
     link: `/category/${category}`,
   })),
-  bottomPromoCards: Array.from({ length: 2 }, (_, index) => ({
+  bottomPromoCards: Array.from({ length: 3 }, (_, index) => ({
     id: index + 1,
     image: "",
     title: "",
@@ -181,7 +181,7 @@ Screen 1
 
       <h2 className="text-2xl font-bold mb-6">Promo Cards</h2>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-14">
+      <div className="grid lg:grid-cols-3 gap-6 mb-14">
         {campaign.promoCards.map((card, index) => (
           <PromoCardForm
             key={`${campaign.category}-card-${index}`}
@@ -194,7 +194,7 @@ Screen 1
 
       <h2 className="text-2xl font-bold mb-6">Bottom Promo Cards</h2>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6">
         {campaign.bottomPromoCards.map((card, index) => (
           <PromoCardForm
             key={`${campaign.category}-bottom-card-${index}`}

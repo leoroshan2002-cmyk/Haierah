@@ -1,75 +1,102 @@
-import { Bird, Camera, FactoryIcon } from "lucide-react";
+import { ArrowRight, AtSign, Camera, FactoryIcon, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import logotransparent from "../assets/HaierahLogoTransparent.png";
-import birdLogo from "../assets/BirdLogo.png";
 
 export default function Footer() {
-
   return (
-    <footer className="bg-[#f8f7f5] border-t">
-      <div className="max-w-7xl mx-auto px-6 py-16 grid md:grid-cols-4 gap-10">
-        <div>
-          <Link to="/" className="inline-flex items-center gap-3 mb-4">
-            <img src={birdLogo} alt="HAIERAH Logo" className="h-8 w-auto" />
-            <span className="text-2xl font-bold text-black">HAIERAH</span>
-          </Link>
-       
+    <footer className="mx-2 overflow-hidden rounded-t-[22px] bg-white text-[#071329]">
+      <div className="mx-auto px-6 py-2 sm:px-8 lg:px-6 lg:pb-[80px] lg:pt-[60px]">
+        <div className="grid gap-2 p-15 lg:grid-cols-2 lg:gap-[10px]">
+          <div>
+            <Link to="/home">
+              <img
+                src={logotransparent}
+                alt="HAIERAH Logo"
+                className="h-11 w-auto object-contain transition-all duration-300 sm:h-14"
+              />
+            </Link>
+            <p className="mt-7 max-w-[510px] text-[17px] leading-7 text-[#344054]">
+              Premium menswear for the modern gentleman. Elevate<br className="hidden sm:block" />
+              your wardrobe with timeless pieces crafted for distinction.
+            </p>
+            <div className="mt-10 flex items-center gap-2.5">
+              <span className="mr-3 text-[17px]">Follow us on</span>
+              {[
+                [Camera, "Instagram"],
+                [X, "X"],
+                [AtSign, "Facebook"],
+                [FactoryIcon, "LinkedIn"],
+              ].map(([Icon, label]) => (
+                <a
+                  key={label}
+                  href="#social"
+                  aria-label={label}
+                  className="grid size-[50px] place-items-center rounded-[10px] bg-[#f4f6f7] transition hover:bg-[#e9edef]"
+                >
+                  <Icon size={19} strokeWidth={1.8} />
+                </a>
+              ))}
+            </div>
+          </div>
 
-          <p className="text-slate-500 text-sm">
-            Crafting timeless elegance for the modern lifestyle
-            since 2024.
-          </p>
-
-          <div className="flex gap-3 mt-5">
-            <FactoryIcon size={18} />
-            <Camera size={18} />
-            <Bird size={18} />
+          <div>
+            <h2 className="text-[31px] font-medium">Newsletter</h2>
+            <p className="mt-5 max-w-[500px] text-[17px] leading-7 text-[#344054]">
+              Get exclusive drops, styling notes, and early access to new<br className="hidden sm:block" />
+              collections, straight to your inbox.
+            </p>
+            <form className="mt-9 flex h-[60px] items-center rounded-full border border-[#e9edef] bg-[#f4f6f7] p-1.5">
+              <input
+                type="email"
+                aria-label="Your email address"
+                placeholder="Your email address"
+                className="min-w-0 flex-1 bg-transparent px-5 text-[16px] text-[#071329] outline-none placeholder:text-[#344054]"
+              />
+              <button
+                type="submit"
+                aria-label="Subscribe to newsletter"
+                className="grid size-11 shrink-0 place-items-center rounded-full bg-[#f47c20] text-white transition hover:bg-[#df6810]"
+              >
+                <ArrowRight size={22} strokeWidth={1.7} />
+              </button>
+            </form>
           </div>
         </div>
 
-        <div>
-          <h3 className="font-semibold mb-4">
-            SHOP
-          </h3>
+        <div className="my-10 border-t border-[#dfe3e6]" />
 
-          <ul className="space-y-3 flex flex-col w-fit text-slate-500 text-sm cursor-pointer">
-            <Link to="/new-arrivals"> <li className="hover:text-red-600">New Arrivals</li></Link>
-            <Link to="/best-sellers"> <li className="hover:text-red-600">Best Sellers</li></Link>
-            <Link to="/category/men">  <li className="hover:text-red-600">Men's Collection</li></Link>
-            <Link to="/category/women"> <li className="hover:text-red-600">Women's Collection</li></Link>
-          </ul>
-        </div>
-
-        <div>
-          <h3 className="font-semibold mb-4">
-            CUSTOMER CARE
-          </h3>
-
-          <ul className="space-y-3 flex flex-col w-fit text-slate-500 text-sm cursor-pointer">
-            <Link to="/shipping-returns"><li className="hover:text-red-700">Shipping & Returns</li></Link>
-            <Link to="/privacy-policy"><li className="hover:text-red-700">Privacy Policy</li></Link>
-            <Link to="/terms-of-service"><li className="hover:text-red-700">Terms of Service</li></Link>
-            <Link to="/contact"><li className="hover:text-red-700">Contact Us</li></Link>
-          </ul>
-        </div>
-
-        <div>
-          <h3 className="font-semibold mb-4">
-            OUR BRAND
-          </h3>
-
-          <ul className="space-y-3 flex flex-col w-fit text-slate-500 text-sm cursor-pointer">
-            <Link to="/brand-story"><li className="hover:text-red-700">Brand Story</li></Link>
-            <Link to="/sustainability"><li className="hover:text-red-700">Sustainability</li></Link>
-            <Link to="/press"><li className="hover:text-red-700">Press</li></Link>
-            <Link to="/store-locator"><li className="hover:text-red-700">Store Locator</li></Link>
-          </ul>
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 sm:grid-cols-3 lg:grid-cols-5 lg:gap-10">
+          <FooterColumn title="Company" links={[["About Us", "/brand-story"], ["Our Story", "/brand-story"], ["Careers", "/contact"]]} />
+          <FooterColumn title="Customer Support" links={[["FAQ", "/contact"], ["Track Order", "/orders"], ["Shipping & Returns", "/shipping-returns"]]} />
+          <FooterColumn title="Shop" links={[["NEW ARRAIVAL", "/category/new-arraival"], ["KIDS", "/category/kids"], ["WOMEN", "/category/women"], ["MEN", "/category/men"], ["UNISEX", "/category/unisex"]]} />
+          <FooterColumn title="Quick Links" links={[["Categories", "/categories"], ["Wishlist", "/wishlist"], ["Cart", "/cart"], ["My Account", "/account"]]} />
+          <div>
+            <h3 className="text-[17px] font-medium">Contact</h3>
+            <address className="mt-7 space-y-4 text-[16px] not-italic leading-6 text-[#526071]">
+              <a href="mailto:contact@yourdomain.com" className="block hover:text-[#071329]">contact@yourdomain.com</a>
+              <a href="tel:+15550000000" className="block hover:text-[#071329]">+1 (555) 000-0000</a>
+              <p>123 Business Street, City, Country</p>
+              <p>Mon–Fri, 9am–6pm</p>
+            </address>
+          </div>
         </div>
       </div>
 
-      <div className="border-t py-6 text-center text-sm text-slate-500">
-        © 2026 HAIERAH Collection. All rights reserved.
-      </div>
     </footer>
+  );
+}
+
+function FooterColumn({ title, links }) {
+  return (
+    <div>
+      <h3 className="text-[17px] font-medium">{title}</h3>
+      <ul className="mt-7 space-y-4 text-[16px] leading-6 text-[#526071]">
+        {links.map(([label, href]) => (
+          <li key={label}>
+            <Link to={href} className="hover:text-[#071329]">{label}</Link>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

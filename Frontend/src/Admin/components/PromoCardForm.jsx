@@ -1,4 +1,3 @@
-import React from "react";
 import { DEFAULT_IMAGE_FALLBACK, getSafeImageUrl } from "../../utils/productImages";
 
 const PromoCardForm = ({ card, index, updateCard }) => {
@@ -14,13 +13,14 @@ const PromoCardForm = ({ card, index, updateCard }) => {
           const file = event.target.files?.[0];
           if (file) {
             updateCard(index, "image", URL.createObjectURL(file));
+            updateCard(index, "imageFile", file);
           }
         }}
       />
 
       {card.image && (
         <img
-          src={getSafeImageUrl(card.image, DEFAULT_IMAGE_FALLBACK)}
+          src={card.image?.startsWith("blob:") ? card.image : getSafeImageUrl(card.image, DEFAULT_IMAGE_FALLBACK)}
           alt=""
           className="mt-3 h-40 w-full object-cover rounded"
           onError={(e) => {

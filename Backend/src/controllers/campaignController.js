@@ -1,5 +1,6 @@
 import Campaign from '../models/Campaign.js';
 import Category from '../models/Category.js';
+import { uploadToCloudinary } from '../middleware/cloudinaryStorage.js';
 
 const toCampaignResponse = (campaign) => {
   const doc = campaign.toObject({ getters: true, virtuals: false });
@@ -77,23 +78,35 @@ export const saveCampaign = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Category is required' });
     }
 
+    const submittedCampaign = req.body.campaign ? JSON.parse(req.body.campaign) : req.body;
+    const uploadedImages = {};
+
+    for (const file of req.files || []) {
+      uploadedImages[file.fieldname] = (await uploadToCloudinary(file, 'campaigns')).secure_url;
+    }
+
+    const applyUploadedImages = (collectionName) => (submittedCampaign[collectionName] || []).map((item, index) => ({
+      ...item,
+      image: uploadedImages[`${collectionName}[${index}]`] || item.image || '',
+    }));
+
     const categoryMetadata = await syncCategoryMetadata(category, {
-      name: req.body.name || req.body.category || category,
-      image: req.body.image || '',
-      description: req.body.description || '',
+      name: submittedCampaign.name || submittedCampaign.category || category,
+      image: submittedCampaign.image || '',
+      description: submittedCampaign.description || '',
     });
 
     const payload = {
       category,
       slug: category,
-      name: categoryMetadata?.name || req.body.name || req.body.category || category,
-      image: categoryMetadata?.image || req.body.image || '',
-      description: categoryMetadata?.description || req.body.description || '',
+      name: categoryMetadata?.name || submittedCampaign.name || submittedCampaign.category || category,
+      image: categoryMetadata?.image || submittedCampaign.image || '',
+      description: categoryMetadata?.description || submittedCampaign.description || '',
       status: categoryMetadata?.status || 'Active',
       categoryId: categoryMetadata?._id || null,
-      slider: Array.isArray(req.body.slider) ? req.body.slider : [],
-      promoCards: Array.isArray(req.body.promoCards) ? req.body.promoCards : [],
-      bottomPromoCards: Array.isArray(req.body.bottomPromoCards) ? req.body.bottomPromoCards : [],
+      slider: applyUploadedImages('slider'),
+      promoCards: applyUploadedImages('promoCards'),
+      bottomPromoCards: applyUploadedImages('bottomPromoCards'),
     };
 
     const campaign = await Campaign.findOneAndUpdate(
